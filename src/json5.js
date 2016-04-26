@@ -4,7 +4,13 @@
 // This file is based directly off of Douglas Crockford's json_parse.js:
 // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
 
-import {ValidationError, message} from './schema';
+import {
+  ValidationError,
+  message
+} from './schema';
+import {
+  typeOf
+} from './utils';
 
 var JSON5 = (typeof exports === 'object' ? exports : {});
 
@@ -22,42 +28,46 @@ JSON5.parse = (function () {
       buildMapping(validateValue) {
         let state = white(this.state);
         if (state.ch !== '{') {
-          this.error(message('Expected an object'));
+          let {value: val} = value(state);
+          this.error(message(`Expected a mapping but got: ${typeOf(val)}`));
+        } else {
+          let {value: val, state: nextState} = object(state, (key, valueState) => {
+            valueState = white(valueState);
+            let valueContext = new Context(
+              valueState,
+              message('While validating key:', key),
+              this
+            );
+            let {context, value} = validateValue(valueContext, key);
+            return {state: context.state, value};
+          });
+          return {
+            value: val,
+            context: new Context(nextState),
+          };
         }
-        let {value, state: nextState} = object(state, (key, valueState) => {
-          valueState = white(valueState);
-          let valueContext = new Context(
-            valueState,
-            message('While validating key:', key),
-            this
-          );
-          let {context, value} = validateValue(valueContext, key);
-          return {state: context.state, value};
-        });
-        return {
-          value,
-          context: new Context(nextState),
-        };
       }
 
       buildSequence(validateValue) {
         let state = white(this.state);
         if (state.ch !== '[') {
-          this.error(message('Expected an array'));
-        }
-        let {value, state: nextState} = array(state, (idx, valueState) => {
-          valueState = white(valueState);
-          let valueContext = new Context(
-            valueState,
-            message('While at index:', idx),
-            this
-          );
-          let {context, value} = validateValue(valueContext);
-          return {state: context.state, value};
-        });
-        return {
-          value,
-          context: new Context(nextState),
+          let {value: val} = value(state);
+          this.error(message(`Expected an array but got: ${typeOf(val)}`));
+        } else {
+          let {value: val, state: nextState} = array(state, (idx, valueState) => {
+            valueState = white(valueState);
+            let valueContext = new Context(
+              valueState,
+              message('While at index:', idx),
+              this
+            );
+            let {context, value} = validateValue(valueContext);
+            return {state: context.state, value};
+          });
+          return {
+            value: val,
+            context: new Context(nextState),
+          }
         };
       }
 

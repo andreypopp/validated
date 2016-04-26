@@ -3,11 +3,17 @@
  * @flow
  */
 
-import type {Message, Node} from './schema';
+import type {
+  Message, Node
+} from './schema';
+
 import {
   ValidationError,
   message
 } from './schema';
+import {
+  typeOf
+} from './utils';
 
 function isObject(obj) {
   return obj != null && typeof obj === 'object' && !Array.isArray(obj);
@@ -84,14 +90,4 @@ let NULL_CONTEXT = new Context(null);
 export function validate(schema: Node, value: any): any {
   let context = new Context(value);
   return schema.validate(context).value;
-}
-
-function typeOf(value) {
-  if (value === null) {
-    return 'null';
-  } else if (Array.isArray(value)) {
-    return 'array';
-  } else {
-    return typeof value;
-  }
 }

@@ -1,0 +1,14 @@
+/**
+ * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
+ * @flow
+ */
+
+export function typeOf(value) {
+  if (value === null) {
+    return 'null';
+  } else if (Array.isArray(value)) {
+    return 'array';
+  } else {
+    return typeof value;
+  }
+}

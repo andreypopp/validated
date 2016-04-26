@@ -112,7 +112,7 @@ describe('validated/json5', function() {
       itValidates('{a: 42}', schema, '{a: 42}', {a: 42});
       itDoesNotValidate('[]', schema, '[]', {
         format: [
-          'Expected an object',
+          'Expected a mapping but got: array',
           'At line 1 column 1',
         ].join('\n')
       });
@@ -181,7 +181,12 @@ describe('validated/json5', function() {
       itValidates('[]', schema, '[]', []);
       itValidates('[42]', schema, '[42]', [42]);
       itValidates('[42, 43]', schema, '[42, 43]', [42, 43]);
-      itDoesNotValidate('Object', schema, '{}');
+      itDoesNotValidate('Object', schema, '{}', {
+        format: [
+          'Expected an array but got: object',
+          'At line 1 column 1',
+        ].join('\n')
+      });
       itDoesNotValidate('Number', schema, '1');
       itDoesNotValidate('Boolean', schema, 'true');
       itDoesNotValidate('String', schema, "'not ok'");
@@ -285,6 +290,7 @@ describe('validated/json5', function() {
     let schema = object({a: maybe(string)});
     itValidates('{a: null}', schema, '{a: null}', {a: null});
     itValidates('{a: String}', schema, "{a: 'ok'}", {a: 'ok'});
+// $FlowIssue: ...
     itDoesNotValidate('{a: Number}', schema, '{a: 42}', {
       format: [
         'Expected value of type:',
