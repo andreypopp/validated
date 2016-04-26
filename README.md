@@ -19,7 +19,7 @@ Example:
       object({a: string})
     );
 
-    validate(schema, {a: true})
+    validate(schema, '{a: true}')
     // error thrown:
     //
     // Either:
