@@ -16,7 +16,7 @@ function assertSuccess(schema, value, expectedValue) {
 
 function assertFailure(schema, value, errorSpec = {}) {
   try {
-    parse(value, schema)
+    parse(value, schema);
   } catch (error) {
     if (error instanceof ValidationError) {
       if (errorSpec.message) {
@@ -142,19 +142,19 @@ describe('validated/json5', function() {
       itValidates('{a: 1, b: 2}', schema, '{a: 1, b: 2}', {a: 1, b: 2});
       itDoesNotValidate('{a: 1}', schema, '{a: 1}');
       itDoesNotValidate('{b: 1}', schema, '{b: 1}');
-      itDoesNotValidate('{}', schema, "{}");
-      itDoesNotValidate('{c: 3}', schema, "{c: 3}");
-      itDoesNotValidate('{a: 1, b: 2, c: 3}', schema, "{a: 1, b: 2, c: 3}");
+      itDoesNotValidate('{}', schema, '{}');
+      itDoesNotValidate('{c: 3}', schema, '{c: 3}');
+      itDoesNotValidate('{a: 1, b: 2, c: 3}', schema, '{a: 1, b: 2, c: 3}');
       itDoesNotValidate('Array', schema, '[1]');
-      itDoesNotValidate('Number', schema, "1");
-      itDoesNotValidate('Boolean', schema, "true");
+      itDoesNotValidate('Number', schema, '1');
+      itDoesNotValidate('Boolean', schema, 'true');
       itDoesNotValidate('String', schema, "'not ok'");
     });
 
     describe('with fields with specific validator', function() {
       let schema = object({a: string, b: string});
       itValidates('{a: "a", b: "b"}', schema, "{a: 'a', b: 'b'}", {a: 'a', b: 'b'});
-      itDoesNotValidate('{a: 1, b: 2}', schema, "{a: 1}", {
+      itDoesNotValidate('{a: 1, b: 2}', schema, '{a: 1}', {
         format: [
           'Expected value of type:',
           '  string',
@@ -181,16 +181,16 @@ describe('validated/json5', function() {
       itValidates('[]', schema, '[]', []);
       itValidates('[42]', schema, '[42]', [42]);
       itValidates('[42, 43]', schema, '[42, 43]', [42, 43]);
-      itDoesNotValidate('Object', schema, "{}");
-      itDoesNotValidate('Number', schema, "1");
-      itDoesNotValidate('Boolean', schema, "true");
+      itDoesNotValidate('Object', schema, '{}');
+      itDoesNotValidate('Number', schema, '1');
+      itDoesNotValidate('Boolean', schema, 'true');
       itDoesNotValidate('String', schema, "'not ok'");
     });
     describe('restricted schema', function() {
       let schema = sequence(string);
-      itValidates('[]', schema, "[]", []);
+      itValidates('[]', schema, '[]', []);
       itValidates('["ok"]', schema, "['ok']", ['ok']);
-      itDoesNotValidate('[42]', schema, "[42]", {
+      itDoesNotValidate('[42]', schema, '[42]', {
         format: [
           'Expected value of type:',
           '  string',
@@ -219,9 +219,9 @@ describe('validated/json5', function() {
 
     describe('with scalars', function() {
       let schema = oneOf(string, number);
-      itValidates('Number', schema, "1", 1);
+      itValidates('Number', schema, '1', 1);
       itValidates('String', schema, "'ok'", 'ok');
-      itDoesNotValidate('Boolean', schema, "true", {
+      itDoesNotValidate('Boolean', schema, 'true', {
         format: [
           'Either:',
           '',
@@ -240,14 +240,14 @@ describe('validated/json5', function() {
           'At line 1 column 1',
         ].join('\n')
       });
-      itDoesNotValidate('Object', schema, "{}");
+      itDoesNotValidate('Object', schema, '{}');
     });
 
     describe('with containers', function() {
       let schema = oneOf(object({a: number}), object({a: string}));
-      itValidates('Object {a: number}', schema, "{a: 1}", {a: 1});
+      itValidates('Object {a: number}', schema, '{a: 1}', {a: 1});
       itValidates('Object {a: string}', schema, "{a: 'ok'}", {a: 'ok'});
-      itDoesNotValidate('Object {a: boolean}', schema, "{a: true}", {
+      itDoesNotValidate('Object {a: boolean}', schema, '{a: true}', {
         format: [
           'Either:',
           '',
@@ -276,16 +276,16 @@ describe('validated/json5', function() {
 
   describe('enumeration', function() {
     let schema = enumeration(42, 'ok');
-    itValidates('42', schema, "42", 42);
+    itValidates('42', schema, '42', 42);
     itValidates('"ok"', schema, "'ok'", 'ok');
-    itDoesNotValidate('1', schema, "1");
+    itDoesNotValidate('1', schema, '1');
   });
 
   describe('maybe', function() {
     let schema = object({a: maybe(string)});
-    itValidates('{a: null}', schema, "{a: null}", {a: null});
+    itValidates('{a: null}', schema, '{a: null}', {a: null});
     itValidates('{a: String}', schema, "{a: 'ok'}", {a: 'ok'});
-    itDoesNotValidate('{a: Number}', schema, "{a: 42}", {
+    itDoesNotValidate('{a: Number}', schema, '{a: 42}', {
       format: [
         'Expected value of type:',
         '  string',

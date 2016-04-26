@@ -55,10 +55,12 @@ export function message(message: ?string, children: string | Message | Array<Mes
 }
 
 export function ValidationError(message: Message | string) {
+  // $FlowIssue: ...
   Error.call(this, message);
   this.message = message;
 }
 ValidationError.prototype = new Error();
+// $FlowIssue: ...
 ValidationError.prototype.constructor = ValidationError;
 ValidationError.prototype.toString = function toString() {
   return this.message.toString();
@@ -228,6 +230,7 @@ class OneOfNode extends Node {
     this.nodes = nodes;
   }
 
+  // $FlowIssue: can't infer termination due exception
   validate(context: Context): ValidateResult {
     let errors = [];
     for (let i = 0; i < this.nodes.length; i++) {

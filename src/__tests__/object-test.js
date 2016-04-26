@@ -18,7 +18,7 @@ function assertSuccess(schema, value, expectedValue) {
 
 function assertFailure(schema, value, errorSpec = {}) {
   try {
-    validate(schema, value)
+    validate(schema, value);
   } catch (error) {
     if (error instanceof ValidationError) {
       if (errorSpec.message) {

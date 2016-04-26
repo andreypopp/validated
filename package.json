@@ -12,7 +12,10 @@
     ]
   },
   "eslintConfig": {
-    "extends": "prometheusresearch"
+    "extends": "prometheusresearch",
+    "env": {
+      "mocha": true
+    }
   },
   "repository": {
     "type": "git",
