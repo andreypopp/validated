@@ -12,9 +12,7 @@ import {
   typeOf
 } from './utils';
 
-var JSON5 = (typeof exports === 'object' ? exports : {});
-
-JSON5.parse = (function () {
+var parse = (function () {
     "use strict";
 
     class Context {
@@ -632,3 +630,7 @@ JSON5.parse = (function () {
         return result;
     };
 }());
+
+export function validate(schema, value) {
+  return parse(value, schema);
+}

@@ -8,15 +8,15 @@ import {
   mapping, object, sequence, maybe, oneOf, enumeration,
   string, number, boolean, any
 } from '../schema';
-import {parse} from '../json5';
+import {validate} from '../json5';
 
 function assertSuccess(schema, value, expectedValue) {
-  assert.deepStrictEqual(parse(value, schema), expectedValue);
+  assert.deepStrictEqual(validate(schema, value), expectedValue);
 }
 
 function assertFailure(schema, value, errorSpec = {}) {
   try {
-    parse(value, schema);
+    validate(schema, value);
   } catch (error) {
     if (error instanceof ValidationError) {
       if (errorSpec.message) {
