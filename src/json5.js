@@ -4,6 +4,8 @@
 // This file is based directly off of Douglas Crockford's json_parse.js:
 // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
 
+import {ValidationError} from './schema';
+
 var JSON5 = (typeof exports === 'object' ? exports : {});
 
 JSON5.parse = (function () {
@@ -38,6 +40,11 @@ JSON5.parse = (function () {
           value: val,
           context: new Context(state),
         };
+      }
+
+      error(message) {
+        // TODO: include location info
+        throw new ValidationError(message);
       }
     }
 

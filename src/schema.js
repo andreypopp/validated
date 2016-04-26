@@ -20,6 +20,7 @@ export type Context = {
   buildMapping(validateValue: (context: Context, key: string) => ValidateResult): ValidateResult;
   buildSequence(validateValue: (context: Context) => ValidateResult): ValidateResult;
   unwrap(validate: (value: any) => any): ValidateResult;
+  error(message: string): void;
 };
 
 type ValidateResult = {context: Context; value: any};
@@ -36,9 +37,9 @@ export class ValidationError extends Error {
 
 export class Node {
 
-  validate(_context: Context) {
+  validate(context: Context) {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
-    throw new ValidationError(message);
+    throw new Error(message);
   }
 }
 
@@ -47,7 +48,7 @@ class AnyNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (value == null) {
-        throw new ValidationError(`expected a value but got: ${value === null ? 'null' : 'undefined'}`);
+        context.error(`expected a value but got: ${value === null ? 'null' : 'undefined'}`);
       }
       return value;
     });
@@ -90,7 +91,7 @@ class ObjectNode extends Node {
   validate(context: Context) {
     let res = context.buildMapping((context, key) => {
       if (this.values[key] === undefined) {
-        throw new ValidationError(`unexpected key ${key}`);
+        context.error(`unexpected key ${key}`);
       }
       return this.values[key].validate(context);
     });
@@ -99,7 +100,7 @@ class ObjectNode extends Node {
       if (this.values.hasOwnProperty(key)) {
         if (value[key] === undefined) {
           if (this.defaults[key] === undefined) {
-            throw new ValidationError(`missing key ${key}`);
+            context.error(`missing key ${key}`);
           } else {
             value[key] = this.defaults[key];
           }
@@ -172,7 +173,7 @@ class EnumerationNode extends Node {
         }
       }
       let expectation = this.values.map(v => JSON.stringify(v)).join(', ');
-      throw new ValidationError(
+      context.error(
         `expected value to be one of: ${expectation} but got: ${JSON.stringify(value)}`
       );
     });
@@ -210,7 +211,7 @@ class OneOfNode extends Node {
       errors.length > 0,
       'Impossible happened'
     );
-    throw new ValidationError(errors.map(error => error.message).join(', '));
+    context.error(errors.map(error => error.message).join(', '));
   }
 }
 
@@ -223,7 +224,7 @@ class StringNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'string') {
-        throw new ValidationError(`expected string but got: ${typeof value}`);
+        context.error(`expected string but got: ${typeof value}`);
       }
       return value;
     });
@@ -237,7 +238,7 @@ class NumberNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'number') {
-        throw new ValidationError(`expected number but got: ${typeof value}`);
+        context.error(`expected number but got: ${typeof value}`);
       }
       return value;
     });
@@ -251,7 +252,7 @@ class BooleanNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'boolean') {
-        throw new ValidationError(`expected boolean but got: ${typeof value}`);
+        context.error(`expected boolean but got: ${typeof value}`);
       }
       return value;
     });

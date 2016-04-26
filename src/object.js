@@ -20,7 +20,7 @@ class Context {
 
   buildMapping(validate) {
     if (!isObject(this.value)) {
-      throw new ValidationError(`expected mapping but got: ${typeof this.value}`);
+      this.error(`expected mapping but got: ${typeof this.value}`);
     }
     let keys = Object.keys(this.value);
     let value = {};
@@ -35,7 +35,7 @@ class Context {
 
   buildSequence(validate) {
     if (!Array.isArray(this.value)) {
-      throw new ValidationError(`expected sequence but got: ${typeof this.value}`);
+      this.error(`expected sequence but got: ${typeof this.value}`);
     }
     let value: Array<any> = [];
     for (let i = 0; i < this.value.length; i++) {
@@ -49,6 +49,10 @@ class Context {
   unwrap(validate) {
     let value = validate(this.value);
     return {value, context: NULL_CONTEXT};
+  }
+
+  error(message) {
+    throw new ValidationError(message);
   }
 }
 
