@@ -4,7 +4,7 @@
 // This file is based directly off of Douglas Crockford's json_parse.js:
 // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
 
-import {ValidationError} from './schema';
+import {ValidationError, message} from './schema';
 
 var JSON5 = (typeof exports === 'object' ? exports : {});
 
@@ -13,23 +13,51 @@ JSON5.parse = (function () {
 
     class Context {
 
-      constructor(state) {
+      constructor(state, description = null, parent = null) {
         this.state = state;
+        this.description = description;
+        this.parent = parent;
       }
 
       buildMapping(validateValue) {
-        let {value, state} = object(white(this.state), validateValue);
+        let state = white(this.state);
+        if (state.ch !== '{') {
+          this.error(message('Expected an object'));
+        }
+        let {value, state: nextState} = object(state, (key, valueState) => {
+          valueState = white(valueState);
+          let valueContext = new Context(
+            valueState,
+            message('While validating key:', key),
+            this
+          );
+          let {context, value} = validateValue(valueContext, key);
+          return {state: context.state, value};
+        });
         return {
           value,
-          context: new Context(state),
+          context: new Context(nextState),
         };
       }
 
       buildSequence(validateValue) {
-        let {value, state} = array(white(this.state), validateValue);
+        let state = white(this.state);
+        if (state.ch !== '[') {
+          this.error(message('Expected an array'));
+        }
+        let {value, state: nextState} = array(state, (idx, valueState) => {
+          valueState = white(valueState);
+          let valueContext = new Context(
+            valueState,
+            message('While at index:', idx),
+            this
+          );
+          let {context, value} = validateValue(valueContext);
+          return {state: context.state, value};
+        });
         return {
           value,
-          context: new Context(state),
+          context: new Context(nextState),
         };
       }
 
@@ -42,9 +70,18 @@ JSON5.parse = (function () {
         };
       }
 
-      error(message) {
-        // TODO: include location info
-        throw new ValidationError(message);
+      error(msg) {
+        let {lineNumber, columnNumber} = this.state;
+        let messages = [msg];
+        let context = this;
+        do {
+          if (context.description) {
+            messages.push(context.description);
+          }
+          context = context.parent;
+        } while (context);
+        messages.push(`At line ${lineNumber} column ${columnNumber - 1}`);
+        throw new ValidationError(message(null, messages));
       }
     }
 
@@ -436,11 +473,12 @@ JSON5.parse = (function () {
 
         value,  // Place holder for the value function.
 
-        array = function (state, validateValue) {
+        array = function (state, continuation) {
 
 // Parse an array value.
 
             var array = [];
+            var idx = 0;
 
             if (state.ch === '[') {
                 state = next('[', state);
@@ -455,16 +493,16 @@ JSON5.parse = (function () {
                     if (state.ch === ',') {
                         error("Missing array element");
                     } else {
-                        if (validateValue) {
-                          let context = new Context(state);
-                          let res = validateValue(context);
+                        if (continuation) {
+                          let res = continuation(idx, state);
                           array.push(res.value);
-                          state = res.context.state;
+                          state = res.state;
                         } else {
                           var valueAndState = value(state);
                           array.push(valueAndState.value);
                           state = valueAndState.state;
                         }
+                        idx = idx + 1;
                     }
                     state = white(state);
                     // If there's no comma after this value, this needs to
@@ -480,7 +518,7 @@ JSON5.parse = (function () {
             error("Bad array");
         },
 
-        object = function (state, validateValue) {
+        object = function (state, continuation) {
 
 // Parse an object value.
 
@@ -509,11 +547,10 @@ JSON5.parse = (function () {
 
                     state = white(state);
                     state = next(':', state);
-                    if (validateValue) {
-                      let context = new Context(state);
-                      let res = validateValue(context, key);
+                    if (continuation) {
+                      let res = continuation(key, state);
                       object[key] = res.value;
-                      state = res.context.state;
+                      state = res.state;
                     } else {
                       var valueAndState = value(state);
                       object[key] = valueAndState.value;
@@ -568,6 +605,7 @@ JSON5.parse = (function () {
             ch: ' '
         };
         if (node) {
+          state = white(state);
           var context = new Context(state);
           var result = node.validate(context);
           state = result.context.state;
