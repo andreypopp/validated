@@ -24,10 +24,10 @@ ci::
 sloc::
 	@$(BIN)/sloc -e __tests__ src
 
-version-major version-minor version-patch:: lint test
+version-major version-minor version-patch:: lint check test
 	@npm version $(@:version-%=%)
 
-publish::
+publish:: build
 	@git push --tags origin HEAD:master
 	@npm publish
 
