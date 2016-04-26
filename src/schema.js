@@ -10,7 +10,6 @@ export type NodeSpec
   | {type: 'string'}
   | {type: 'number'}
   | {type: 'any'}
-  | {type: 'reference'}
   | {type: 'maybe', value: NodeSpec}
   | {type: 'mapping', value: NodeSpec}
   | {type: 'sequence', value: NodeSpec}
@@ -18,7 +17,7 @@ export type NodeSpec
 
 export type Context = {
 
-  buildMapping(validateValue: (context: Context) => ValidateResult): ValidateResult;
+  buildMapping(validateValue: (context: Context, key: string) => ValidateResult): ValidateResult;
   buildSequence(validateValue: (context: Context) => ValidateResult): ValidateResult;
   unwrap(validate: (value: any) => any): ValidateResult;
 };
@@ -158,6 +157,8 @@ export function maybe(valueNode: Node) {
 
 class EnumerationNode extends Node {
 
+  values: Array<any>;
+
   constructor(values: Array<any>) {
     super();
     this.values = values;
@@ -178,7 +179,7 @@ class EnumerationNode extends Node {
   }
 }
 
-export function enumeration(...values) {
+export function enumeration(...values: Array<any>) {
   return new EnumerationNode(values);
 }
 
@@ -272,9 +273,6 @@ export function parse(spec: NodeSpec): Node {
     }
     case 'any': {
       return any;
-    }
-    case 'reference': {
-      return reference;
     }
     case 'maybe': {
       return maybe(parse(spec.value));

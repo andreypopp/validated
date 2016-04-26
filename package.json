@@ -11,6 +11,9 @@
       "prometheusresearch"
     ]
   },
+  "eslintConfig": {
+    "extends": "prometheusresearch"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andreypopp/json-config-format.git"

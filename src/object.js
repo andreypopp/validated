@@ -3,11 +3,16 @@
  * @flow
  */
 
+import type {Node} from './schema';
+import {ValidationError} from './schema';
+
 function isObject(obj) {
   return obj != null && typeof obj === 'object' && !Array.isArray(obj);
 }
 
 class Context {
+
+  value: any;
 
   constructor(value) {
     this.value = value;
@@ -15,7 +20,7 @@ class Context {
 
   buildMapping(validate) {
     if (!isObject(this.value)) {
-      throw new ValidationError(`expected mapping but got: ${typeof value}`);
+      throw new ValidationError(`expected mapping but got: ${typeof this.value}`);
     }
     let keys = Object.keys(this.value);
     let value = {};
