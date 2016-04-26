@@ -1,0 +1,36 @@
+{
+  "name": "json-config-format",
+  "version": "0.1.0",
+  "description": "JSON configuration utilities",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "babel": {
+    "presets": [
+      "prometheusresearch"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andreypopp/json-config-format.git"
+  },
+  "author": "Andrey Popp <8mayday@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andreypopp/json-config-format/issues"
+  },
+  "homepage": "https://github.com/andreypopp/json-config-format#readme",
+  "devDependencies": {
+    "babel-cli": "^6.7.7",
+    "babel-core": "^6.7.7",
+    "babel-preset-prometheusresearch": "^0.1.0",
+    "eslint": "^2.8.0",
+    "eslint-config-prometheusresearch": "^0.2.0",
+    "flow-bin": "^0.23.1",
+    "mocha": "^2.4.5"
+  },
+  "dependencies": {
+    "invariant": "^2.2.1"
+  }
+}
