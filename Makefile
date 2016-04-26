@@ -19,7 +19,7 @@ test::
 	@$(BIN)/mocha $(MOCHA_OPTS) $(TESTS)
 
 ci::
-	@$(BIN)/mocha $(MOCHA_OPTS) --watch --watch-extensions json,md $(TESTS)
+	@$(BIN)/mocha $(MOCHA_OPTS) -b --watch --watch-extensions json,md $(TESTS)
 
 sloc::
 	@$(BIN)/sloc -e __tests__ src
