@@ -44,7 +44,7 @@ function itDoesNotValidate(valueName, schema, value, message) {
   it(description, () => assertFailure(schema, value, message));
 }
 
-describe('json-config-format/object', function() {
+describe('validated/object', function() {
 
   describe('string', function() {
     let schema = string;

@@ -1,5 +1,5 @@
 {
-  "name": "json-config-format",
+  "name": "validated",
   "version": "0.1.0",
   "description": "JSON configuration utilities",
   "main": "./lib/index.js",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andreypopp/json-config-format.git"
+    "url": "git+https://github.com/andreypopp/validated.git"
   },
   "author": "Andrey Popp <8mayday@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/andreypopp/json-config-format/issues"
+    "url": "https://github.com/andreypopp/validated/issues"
   },
-  "homepage": "https://github.com/andreypopp/json-config-format#readme",
+  "homepage": "https://github.com/andreypopp/validated#readme",
   "devDependencies": {
     "babel-cli": "^6.7.7",
     "babel-core": "^6.7.7",

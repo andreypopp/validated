@@ -42,7 +42,7 @@ function itDoesNotValidate(valueName, schema, value, errorSpec) {
   it(description, () => assertFailure(schema, value, errorSpec), ValidationError);
 }
 
-describe('json-config-format/json5', function() {
+describe('validated/json5', function() {
 
   describe('string', function() {
     let schema = string;
