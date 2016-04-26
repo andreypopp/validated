@@ -56,6 +56,24 @@ describe('json-config-format/json5', function() {
         'At line 1 column 1',
       ].join('\n')
     });
+    itDoesNotValidate('number', schema, '  1', {
+      format: [
+        'Expected value of type:',
+        '  string',
+        'Found value of type:',
+        '  number',
+        'At line 1 column 3',
+      ].join('\n')
+    });
+    itDoesNotValidate('number', schema, '  \n1', {
+      format: [
+        'Expected value of type:',
+        '  string',
+        'Found value of type:',
+        '  number',
+        'At line 2 column 0',
+      ].join('\n')
+    });
   });
 
   describe('number', function() {
