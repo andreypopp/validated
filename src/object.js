@@ -3,7 +3,7 @@
  * @flow
  */
 
-import type {Node} from './schema';
+import type {Message, Node} from './schema';
 import {
   ValidationError,
   message
@@ -16,10 +16,10 @@ function isObject(obj) {
 class Context {
 
   value: any;
-  description: string;
+  description: null | Message | string;
   parent: ?Context;
 
-  constructor(value, description: ?string, parent: ?Context = null) {
+  constructor(value, description: null | Message | string = null, parent: ?Context = null) {
     this.value = value;
     this.description = description;
     this.parent = parent;
@@ -52,7 +52,7 @@ class Context {
     for (let i = 0; i < this.value.length; i++) {
       let context = new Context(
         this.value[i],
-        message('While validating value at index:', i),
+        message('While validating value at index:', String(i)),
         this
       );
       let res = validate(context);

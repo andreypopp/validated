@@ -26,12 +26,12 @@ export type Context = {
 
 type ValidateResult = {context: Context; value: any};
 
-class Message {
+export class Message {
 
   message: ?string;
-  children: Array<string>;
+  children: Array<Message | string>;
 
-  constructor(message: ?string, children: Array<string> = []) {
+  constructor(message: ?string, children: Array<Message | string> = []) {
     this.message = message;
     this.children = children;
   }
@@ -47,7 +47,7 @@ class Message {
   }
 }
 
-export function message(message: ?string, children: string | Array<string> = []) {
+export function message(message: ?string, children: string | Message | Array<Message | string> = []) {
   if (!Array.isArray(children)) {
     children = [children];
   }
@@ -66,7 +66,7 @@ ValidationError.prototype.toString = function toString() {
 
 export class Node {
 
-  validate(_context: Context) {
+  validate(_context: Context): ValidateResult {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
   }
@@ -228,7 +228,7 @@ class OneOfNode extends Node {
     this.nodes = nodes;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult {
     let errors = [];
     for (let i = 0; i < this.nodes.length; i++) {
       try {
