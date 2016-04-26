@@ -3,7 +3,7 @@
  * @flow
  */
 
-export function typeOf(value) {
+export function typeOf(value: any): string {
   if (value === null) {
     return 'null';
   } else if (Array.isArray(value)) {
