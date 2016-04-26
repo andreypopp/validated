@@ -74,7 +74,7 @@ class Context {
         messages.push(context.description);
       }
       context = context.parent;
-    } while (context)
+    } while (context);
     throw new ValidationError(message(null, messages));
   }
 }

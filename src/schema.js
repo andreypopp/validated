@@ -21,17 +21,17 @@ export type Context = {
   buildMapping(validateValue: (context: Context, key: string) => ValidateResult): ValidateResult;
   buildSequence(validateValue: (context: Context) => ValidateResult): ValidateResult;
   unwrap(validate: (value: any) => any): ValidateResult;
-  error(message: string): void;
+  error(message: Message | string): void;
 };
 
 type ValidateResult = {context: Context; value: any};
 
 class Message {
 
-  message: string;
+  message: ?string;
   children: Array<string>;
 
-  constructor(message: string, children: Array<string> = []) {
+  constructor(message: ?string, children: Array<string> = []) {
     this.message = message;
     this.children = children;
   }
@@ -43,8 +43,15 @@ class Message {
       return [this.message]
         .concat(this.children.map(m => indent(m.toString(), '  ', 1)))
         .join('\n');
-    };
+    }
   }
+}
+
+export function message(message: ?string, children: string | Array<string> = []) {
+  if (!Array.isArray(children)) {
+    children = [children];
+  }
+  return new Message(message, children);
 }
 
 export function ValidationError(message: Message | string) {
@@ -57,16 +64,9 @@ ValidationError.prototype.toString = function toString() {
   return this.message.toString();
 };
 
-export function message(message: string, children: string | Array<string> = []) {
-  if (!Array.isArray(children)) {
-    children = [children];
-  }
-  return new Message(message, children);
-}
-
 export class Node {
 
-  validate(context: Context) {
+  validate(_context: Context) {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
   }
