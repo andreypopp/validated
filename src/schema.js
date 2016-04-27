@@ -24,7 +24,7 @@ export type Context = {
   error(message: Message | string): void;
 };
 
-type ValidateResult = {context: Context; value: any};
+export type ValidateResult = {context: Context; value: any};
 
 export class Message {
 
@@ -115,11 +115,11 @@ class ObjectNode extends Node {
   valuesKeys: Array<string>;
   defaults: Object;
 
-  constructor(values: {[name: string]: Node}, defaults: Object = {}) {
+  constructor(values: {[name: string]: Node}, defaults: ?Object = {}) {
     super();
     this.values = values;
     this.valuesKeys = Object.keys(values);
-    this.defaults = defaults;
+    this.defaults = defaults || {};
   }
 
   validate(context: Context) {
@@ -145,7 +145,7 @@ class ObjectNode extends Node {
   }
 }
 
-export function object(values: {[name: string]: Node}, defaults: {[name: string]: any}) {
+export function object(values: {[name: string]: Node}, defaults: ?Object) {
   return new ObjectNode(values, defaults);
 }
 
@@ -313,43 +313,28 @@ class BooleanNode extends Node {
 
 export let boolean = new BooleanNode();
 
-export function parse(spec: NodeSpec): Node {
-  switch (spec.type) {
-    case 'boolean': {
-      return boolean;
-    }
-    case 'string': {
-      return string;
-    }
-    case 'number': {
-      return number;
-    }
-    case 'any': {
-      return any;
-    }
-    case 'maybe': {
-      return maybe(parse(spec.value));
-    }
-    case 'mapping': {
-      return mapping(parse(spec.value));
-    }
-    case 'sequence': {
-      return sequence(parse(spec.value));
-    }
-    case 'object': {
-      let values = {};
-      for (let key in spec.values) {
-        if (spec.values.hasOwnProperty(key)) {
-          values[key] = parse(spec.values[key]);
-        }
-      }
-      return object(values, spec.defaults);
-    }
-    default: {
-      invariant(
-        false,
-        'Unable to parse schema, unknown type: %s', spec.type
-      );
-    }
+class RefNode extends Node {
+
+  node: ?Node;
+
+  constructor() {
+    super();
+    this.node = null;
   }
+
+  validate(context: Context): ValidateResult {
+    invariant(
+      this.node != null,
+      'Trying to validate with an unitialized ref'
+    );
+    return this.node.validate(context);
+  }
+
+  set(node: Node): void {
+    this.node = node;
+  }
+}
+
+export function ref() {
+  return new RefNode();
 }
