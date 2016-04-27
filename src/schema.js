@@ -74,7 +74,7 @@ export class Node {
   }
 }
 
-class AnyNode extends Node {
+export class AnyNode extends Node {
 
   validate(context: Context) {
     return context.unwrap(value => {
@@ -91,7 +91,7 @@ class AnyNode extends Node {
 
 export let any = new AnyNode();
 
-class MappingNode extends Node {
+export class MappingNode extends Node {
 
   valueNode: Node;
 
@@ -109,7 +109,7 @@ export function mapping(valueNode: Node) {
   return new MappingNode(valueNode);
 }
 
-class ObjectNode extends Node {
+export class ObjectNode extends Node {
 
   values: {[name: string]: Node};
   valuesKeys: Array<string>;
@@ -149,7 +149,7 @@ export function object(values: {[name: string]: Node}, defaults: ?Object) {
   return new ObjectNode(values, defaults);
 }
 
-class SequenceNode extends Node {
+export class SequenceNode extends Node {
 
   valueNode: Node;
 
@@ -167,7 +167,7 @@ export function sequence(valueNode: Node) {
   return new SequenceNode(valueNode);
 }
 
-class MaybeNode extends Node {
+export class MaybeNode extends Node {
 
   valueNode: Node;
 
@@ -190,7 +190,7 @@ export function maybe(valueNode: Node) {
   return new MaybeNode(valueNode);
 }
 
-class EnumerationNode extends Node {
+export class EnumerationNode extends Node {
 
   values: Array<any>;
 
@@ -221,7 +221,7 @@ export function enumeration(...values: Array<any>) {
   return new EnumerationNode(values);
 }
 
-class OneOfNode extends Node {
+export class OneOfNode extends Node {
 
   nodes: Array<Node>;
 
@@ -262,7 +262,7 @@ export function oneOf(...nodes: Array<Node>) {
   return new OneOfNode(nodes);
 }
 
-class StringNode extends Node {
+export class StringNode extends Node {
 
   validate(context: Context) {
     return context.unwrap(value => {
@@ -279,7 +279,7 @@ class StringNode extends Node {
 
 export let string = new StringNode();
 
-class NumberNode extends Node {
+export class NumberNode extends Node {
 
   validate(context: Context) {
     return context.unwrap(value => {
@@ -296,7 +296,7 @@ class NumberNode extends Node {
 
 export let number = new NumberNode();
 
-class BooleanNode extends Node {
+export class BooleanNode extends Node {
 
   validate(context: Context) {
     return context.unwrap(value => {
@@ -313,7 +313,7 @@ class BooleanNode extends Node {
 
 export let boolean = new BooleanNode();
 
-class RefNode extends Node {
+export class RefNode extends Node {
 
   node: ?Node;
 
