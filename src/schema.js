@@ -5,6 +5,7 @@
 
 import invariant from 'invariant';
 import indent from 'indent-string';
+import {typeOf} from './utils';
 
 export type NodeSpec
   = {type: 'boolean'}
@@ -16,22 +17,77 @@ export type NodeSpec
   | {type: 'sequence', value: NodeSpec}
   | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}}
 
-export type Context = {
-
-  buildMapping(validateValue: (context: Context, key: string, keyContext: Context) => ValidateResult): ValidateResult;
-  buildSequence(validateValue: (context: Context) => ValidateResult): ValidateResult;
-  unwrap(validate: (value: any) => any): ValidateResult;
-  error(message: Message | string): void;
-};
-
 export type ValidateResult = {context: Context; value: any};
+export type GenericMessage = Message | string;
+
+export class Context {
+
+  parent: ?Context;
+  message: ?GenericMessage;
+
+  constructor(message: ?GenericMessage = null, parent: ?Context = null) {
+    this.message = message;
+    this.parent = parent;
+  }
+
+  buildMapping(_validateValue: (context: Context, key: string, keyContext: Context) => ValidateResult): ValidateResult {
+    throw new Error('not implemented');
+  }
+
+  buildSequence(_validateValue: (context: Context) => ValidateResult): ValidateResult {
+    throw new Error('not implemented');
+  }
+
+  unwrap(_validate: (value: any) => any): ValidateResult {
+    throw new Error('not implemented');
+  }
+
+  buildMessage(originalMessage: GenericMessage, _contextMessages: Array<GenericMessage>): GenericMessage {
+    return originalMessage;
+  }
+
+  withMessage(_message: GenericMessage): Context {
+    throw new Error('not implemented');
+  }
+
+  error(originalMessage: GenericMessage): void {
+    let context = this;
+    let contextMessages = [];
+    do {
+      if (context.message) {
+        contextMessages.push(context.message);
+      }
+      context = context.parent;
+    } while (context);
+    originalMessage = this.buildMessage(originalMessage, contextMessages);
+    throw new ValidationError(originalMessage, contextMessages);
+  }
+}
+
+class NullContext extends Context {
+
+  // $FlowIssue: ...
+  buildMapping(_validateValue) {
+    this.error('Expected a mapping value but got undefined');
+  }
+
+  // $FlowIssue: ...
+  buildSequence(_validateValue) {
+    this.error('Expected an array value but got undefined');
+  }
+
+  unwrap(validate) {
+    let value = validate(undefined);
+    return {value, context: this};
+  }
+}
 
 export class Message {
 
   message: ?string;
-  children: Array<Message | string>;
+  children: Array<GenericMessage>;
 
-  constructor(message: ?string, children: Array<Message | string> = []) {
+  constructor(message: ?string, children: Array<GenericMessage> = []) {
     this.message = message;
     this.children = children;
   }
@@ -47,17 +103,29 @@ export class Message {
   }
 }
 
-export function message(message: ?string, children: string | Message | Array<Message | string> = []) {
+class AlternativeMessage extends Message {
+
+  static DESCRIPTION = 'Either:';
+
+  constructor(children) {
+    super(AlternativeMessage.DESCRIPTION, children);
+  }
+}
+
+export function message(message: ?string, children: GenericMessage | Array<GenericMessage> = []) {
   if (!Array.isArray(children)) {
     children = [children];
   }
   return new Message(message, children);
 }
 
-export function ValidationError(message: Message | string) {
+export function ValidationError(originalMessage: GenericMessage, contextMessages: Array<GenericMessage>) {
   // $FlowIssue: ...
+  let message = [originalMessage].concat(contextMessages).join('\n');
   Error.call(this, message);
   this.message = message;
+  this.originalMessage = originalMessage;
+  this.contextMessages = contextMessages;
 }
 ValidationError.prototype = new Error();
 // $FlowIssue: ...
@@ -79,10 +147,8 @@ export class AnyNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (value == null) {
-        context.error(message(
-          'Expected a value but got:',
-          value === null ? 'null' : 'undefined'
-        ));
+        let repr = value === null ? 'null' : 'undefined';
+        context.error(`Expected a value but got ${repr}`);
       }
       return value;
     });
@@ -123,18 +189,26 @@ export class ObjectNode extends Node {
   }
 
   validate(context: Context) {
+    context = context.withMessage('While validating object');
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] === undefined) {
         keyContext.error(`Unexpected key: "${key}"`);
       }
-      return this.values[key].validate(valueContext);
+      let value = this.values[key].validate(valueContext);
+      return value;
     });
     let value = res.value;
     for (let key in this.values) {
       if (this.values.hasOwnProperty(key)) {
         if (value[key] === undefined) {
           if (this.defaults[key] === undefined) {
-            context.error(`Missing key: "${key}"`);
+            let nullContext = new NullContext(
+              `While validating value at key "${key}"`,
+              context);
+            let {value: missingValue} = this.values[key].validate(nullContext);
+            if (missingValue !== undefined) {
+              value[key] = missingValue;
+            }
           } else {
             value[key] = this.defaults[key];
           }
@@ -179,7 +253,7 @@ export class MaybeNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (value == null) {
-        return null;
+        return value;
       }
       return this.valueNode.validate(context).value;
     });
@@ -207,12 +281,8 @@ export class EnumerationNode extends Node {
         }
       }
       let expectation = this.values.map(v => JSON.stringify(v)).join(', ');
-      context.error(message(
-        null, [
-          message('Expected value to be one of:', expectation),
-          message('But got:', JSON.stringify(value))
-        ]
-      ));
+      let repr = JSON.stringify(value);
+      context.error(`Expected value to be one of ${expectation} but got ${repr}`);
     });
   }
 }
@@ -249,12 +319,7 @@ export class OneOfNode extends Node {
       errors.length > 0,
       'Impossible happened'
     );
-    let messages = [''];
-    errors.forEach(error => {
-      messages.push(error.message);
-      messages.push('');
-    });
-    context.error(message('Either:', messages));
+    throw optimizeAlternativeError(errors);
   }
 }
 
@@ -262,15 +327,52 @@ export function oneOf(...nodes: Array<Node>) {
   return new OneOfNode(nodes);
 }
 
+function optimizeAlternativeError(errors) {
+  let sections = errors
+    .map(error =>
+      [error.originalMessage].concat(error.contextMessages))
+    .map(lines => {
+      lines = lines.slice(0);
+      lines.reverse();
+      return lines;
+    });
+  let different = [];
+  let same = [];
+  for (let i = 0; true; i++) {
+    if (sections.every(lines => lines[i] === undefined)) {
+      break;
+    }
+    if (sections.reduce((a, b) => a[i] === b[i])) {
+      same.unshift(sections[0][i]);
+    } else {
+      sections.forEach(lines => {
+        let alternative = [];
+        lines = lines.slice(same.length);
+        lines.reverse();
+        lines.forEach(line => {
+          if (line instanceof AlternativeMessage) {
+            alternative = alternative.concat(line.children);
+          } else {
+            alternative.push(line);
+          }
+        });
+        different.push(message(null, alternative));
+        different.push('');
+      });
+      break;
+    }
+  }
+  different.pop();
+  different.push('');
+  return new ValidationError(new AlternativeMessage(different), same);
+}
+
 export class StringNode extends Node {
 
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'string') {
-        context.error(message(null, [
-          message('Expected value of type:', 'string'),
-          message('Found value of type:', typeof value),
-        ]));
+        context.error(`Expected value of type string but got ${typeOf(value)}`);
       }
       return value;
     });
@@ -284,10 +386,7 @@ export class NumberNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'number') {
-        context.error(message(null, [
-          message('Expected value of type:', 'number'),
-          message('Found value of type:', typeof value),
-        ]));
+        context.error(`Expected value of type number but got ${typeOf(value)}`);
       }
       return value;
     });
@@ -301,10 +400,7 @@ export class BooleanNode extends Node {
   validate(context: Context) {
     return context.unwrap(value => {
       if (typeof value !== 'boolean') {
-        context.error(message(null, [
-          message('Expected value of type:', 'boolean'),
-          message('Found value of type:', typeof value),
-        ]));
+        context.error(`Expected value of type boolean but got ${typeOf(value)}`);
       }
       return value;
     });

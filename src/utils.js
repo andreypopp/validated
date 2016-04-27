@@ -12,3 +12,12 @@ export function typeOf(value: any): string {
     return typeof value;
   }
 }
+
+export function isObject(obj) {
+  return (
+    obj != null &&
+    typeof obj === 'object' &&
+    !Array.isArray(obj)
+  );
+}
+

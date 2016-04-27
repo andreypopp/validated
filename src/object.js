@@ -4,31 +4,27 @@
  */
 
 import type {
-  Message, Node
+  Node, GenericMessage
 } from './schema';
 
 import {
-  ValidationError,
-  message
+  message,
+  Context as ContextBase
 } from './schema';
 import {
-  typeOf
+  typeOf,
+  isObject
 } from './utils';
 
-function isObject(obj) {
-  return obj != null && typeof obj === 'object' && !Array.isArray(obj);
-}
-
-class Context {
+class Context extends ContextBase {
 
   value: any;
-  description: null | Message | string;
-  parent: ?Context;
+  message: ?GenericMessage;
+  parent: ?ContextBase;
 
-  constructor(value, description: null | Message | string = null, parent: ?Context = null) {
+  constructor(value, message = null, parent = null) {
+    super(message, parent);
     this.value = value;
-    this.description = description;
-    this.parent = parent;
   }
 
   buildMapping(validate) {
@@ -77,16 +73,12 @@ class Context {
     return {value, context: NULL_CONTEXT};
   }
 
-  error(msg) {
-    let context = this;
-    let messages = [msg];
-    do {
-      if (context.description) {
-        messages.push(context.description);
-      }
-      context = context.parent;
-    } while (context);
-    throw new ValidationError(message(null, messages));
+  withMessage(message) {
+    if (this.message === null) {
+      return new Context(this.value, message, this.parent);
+    } else {
+      return new Context(this.value, message, this);
+    }
   }
 }
 

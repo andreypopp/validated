@@ -5,8 +5,7 @@
 // https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
 
 import {
-  ValidationError,
-  message
+  Context as ContextBase
 } from './schema';
 import {
   typeOf
@@ -15,30 +14,36 @@ import {
 var parse = (function () {
     "use strict";
 
-    class Context {
+    function location(state) {
+      return `line ${state.lineNumber} column ${state.columnNumber - 1}`;
+    }
 
-      constructor(state, description = null, parent = null) {
+    class Context extends ContextBase {
+
+      constructor(state, message = null, parent = null) {
+        if (message) {
+          message = `${message} (${location(state)})`;
+        }
+        super(message, parent);
         this.state = state;
-        this.description = description;
-        this.parent = parent;
       }
 
       buildMapping(validateValue) {
         let state = white(this.state);
         if (state.ch !== '{') {
           let {value: val} = value(state);
-          this.error(message(`Expected a mapping but got: ${typeOf(val)}`));
+          this.error(`Expected a mapping but got ${typeOf(val)}`);
         } else {
           let {value: val, state: nextState} = object(state, (key, valueState, keyState) => {
             valueState = white(valueState);
             let valueContext = new Context(
               valueState,
-              message('While validating key:', key),
+              `While validating value at key "${key}"`,
               this
             );
             let keyContext = new Context(
               keyState,
-              message('While validating key:', key),
+              `While validating key "${key}"`,
               this
             );
             let {context, value} = validateValue(valueContext, key, keyContext);
@@ -55,13 +60,13 @@ var parse = (function () {
         let state = white(this.state);
         if (state.ch !== '[') {
           let {value: val} = value(state);
-          this.error(message(`Expected an array but got: ${typeOf(val)}`));
+          this.error(`Expected an array but got ${typeOf(val)}`);
         } else {
           let {value: val, state: nextState} = array(state, (idx, valueState) => {
             valueState = white(valueState);
             let valueContext = new Context(
               valueState,
-              message('While at index:', idx),
+              `While validating value at index ${idx}`,
               this
             );
             let {context, value} = validateValue(valueContext);
@@ -74,6 +79,22 @@ var parse = (function () {
         };
       }
 
+      buildMessage(originalMessage, contextMessages) {
+        if (contextMessages.length === 0) {
+          return `${originalMessage} (${location(this.state)})`;
+        } else {
+          return originalMessage;
+        }
+      }
+
+      withMessage(message) {
+        if (this.message === null) {
+          return new Context(this.state, message, this.parent);
+        } else {
+          return new Context(this.state, message, this);
+        }
+      }
+
       unwrap(validate) {
         let {state, value: val} = value(white(this.state));
         val = validate(val);
@@ -81,20 +102,6 @@ var parse = (function () {
           value: val,
           context: new Context(state),
         };
-      }
-
-      error(msg) {
-        let {lineNumber, columnNumber} = this.state;
-        let messages = [msg];
-        let context = this;
-        do {
-          if (context.description) {
-            messages.push(context.description);
-          }
-          context = context.parent;
-        } while (context);
-        messages.push(`At line ${lineNumber} column ${columnNumber - 1}`);
-        throw new ValidationError(message(null, messages));
       }
     }
 

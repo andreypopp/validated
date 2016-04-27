@@ -156,13 +156,28 @@ describe('validated/object', function() {
       let schema = object({a: any, b: any});
       itValidates('{a: 1, b: 2}', schema, {a: 1, b: 2}, {a: 1, b: 2});
       itDoesNotValidate('{a: 1}', schema, {a: 1}, {
-        format: 'Missing key: "b"'
+        format: [
+          'Expected a value but got:',
+          '  undefined',
+          'While validating key:',
+          '  b',
+        ].join('\n')
       });
       itDoesNotValidate('{b: 1}', schema, {b: 1}, {
-        format: 'Missing key: "a"'
+        format: [
+          'Expected a value but got:',
+          '  undefined',
+          'While validating key:',
+          '  a',
+        ].join('\n')
       });
       itDoesNotValidate('{}', schema, {}, {
-        format: 'Missing key: "a"'
+        format: [
+          'Expected a value but got:',
+          '  undefined',
+          'While validating key:',
+          '  a',
+        ].join('\n')
       });
       itDoesNotValidate('{c: 3}', schema, {c: 3}, {
         format: [
@@ -350,7 +365,7 @@ describe('validated/object', function() {
   describe('maybe', function() {
     let schema = maybe(string);
     itValidates('null', schema, null, null);
-    itValidates('undefined', schema, undefined, null);
+    itValidates('undefined', schema, undefined, undefined);
     itValidates('String', schema, 'not ok', 'not ok');
     itDoesNotValidate('Number', schema, 1, {
       format: [
