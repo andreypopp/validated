@@ -18,7 +18,7 @@ export type NodeSpec
 
 export type Context = {
 
-  buildMapping(validateValue: (context: Context, key: string) => ValidateResult): ValidateResult;
+  buildMapping(validateValue: (context: Context, key: string, keyContext: Context) => ValidateResult): ValidateResult;
   buildSequence(validateValue: (context: Context) => ValidateResult): ValidateResult;
   unwrap(validate: (value: any) => any): ValidateResult;
   error(message: Message | string): void;
@@ -123,11 +123,11 @@ export class ObjectNode extends Node {
   }
 
   validate(context: Context) {
-    let res = context.buildMapping((keyContext, key) => {
+    let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] === undefined) {
-        context.error(`Unexpected key: "${key}"`);
+        keyContext.error(`Unexpected key: "${key}"`);
       }
-      return this.values[key].validate(keyContext);
+      return this.values[key].validate(valueContext);
     });
     let value = res.value;
     for (let key in this.values) {

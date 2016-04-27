@@ -29,14 +29,19 @@ var parse = (function () {
           let {value: val} = value(state);
           this.error(message(`Expected a mapping but got: ${typeOf(val)}`));
         } else {
-          let {value: val, state: nextState} = object(state, (key, valueState) => {
+          let {value: val, state: nextState} = object(state, (key, valueState, keyState) => {
             valueState = white(valueState);
             let valueContext = new Context(
               valueState,
               message('While validating key:', key),
               this
             );
-            let {context, value} = validateValue(valueContext, key);
+            let keyContext = new Context(
+              keyState,
+              message('While validating key:', key),
+              this
+            );
+            let {context, value} = validateValue(valueContext, key, keyContext);
             return {state: context.state, value};
           });
           return {
@@ -545,6 +550,7 @@ var parse = (function () {
                     // Keys can be unquoted. If they are, they need to be
                     // valid JS identifiers.
                     var keyAndState;
+                    let keyState = state;
                     if (state.ch === '"' || state.ch === "'") {
                         keyAndState = string(state);
                     } else {
@@ -556,7 +562,7 @@ var parse = (function () {
                     state = white(state);
                     state = next(':', state);
                     if (continuation) {
-                      let res = continuation(key, state);
+                      let res = continuation(key, state, keyState);
                       object[key] = res.value;
                       state = res.state;
                     } else {

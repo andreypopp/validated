@@ -143,7 +143,14 @@ describe('validated/json5', function() {
       itDoesNotValidate('{a: 1}', schema, '{a: 1}');
       itDoesNotValidate('{b: 1}', schema, '{b: 1}');
       itDoesNotValidate('{}', schema, '{}');
-      itDoesNotValidate('{c: 3}', schema, '{c: 3}');
+      itDoesNotValidate('{c: 3}', schema, '{c: 3}', {
+        format: [
+          'Unexpected key: "c"',
+          'While validating key:',
+          '  c',
+          'At line 1 column 2'
+        ].join('\n')
+      });
       itDoesNotValidate('{a: 1, b: 2, c: 3}', schema, '{a: 1, b: 2, c: 3}');
       itDoesNotValidate('Array', schema, '[1]');
       itDoesNotValidate('Number', schema, '1');

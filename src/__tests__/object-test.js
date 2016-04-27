@@ -165,10 +165,18 @@ describe('validated/object', function() {
         format: 'Missing key: "a"'
       });
       itDoesNotValidate('{c: 3}', schema, {c: 3}, {
-        format: 'Unexpected key: "c"'
+        format: [
+          'Unexpected key: "c"',
+          'While validating key:',
+          '  c',
+        ].join('\n')
       });
       itDoesNotValidate('{a: 1, b: 2, c: 3}', schema, {a: 1, b: 2, c: 3}, {
-        format: 'Unexpected key: "c"'
+        format: [
+          'Unexpected key: "c"',
+          'While validating key:',
+          '  c',
+        ].join('\n')
       });
       itDoesNotValidate('Array', schema, [], {
         format: 'Expected a mapping but got: array'

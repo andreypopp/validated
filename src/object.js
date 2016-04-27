@@ -44,7 +44,12 @@ class Context {
         message('While validating key:', key),
         this
       );
-      let res = validate(context, key);
+      let keyContext = new Context(
+        key,
+        message('While validating key:', key),
+        this
+      );
+      let res = validate(context, key, keyContext);
       value[key] = res.value;
     }
     return {value, context: NULL_CONTEXT};
