@@ -13,8 +13,8 @@ Validate your configurations with precise error messages:
   included). Get error messages with precise info (line and column numbers for
   example).
 
-* Get yhe result of a validation an object: either a plain JSON or some domain
-  model if schema is defined in that way.
+* Get the result of a validation as an object: either a plain JSON or some
+  domain specific classes if schema is defined in that way.
 
 ## Installation
 
