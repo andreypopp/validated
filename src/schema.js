@@ -6,6 +6,7 @@
 import invariant from 'invariant';
 import indent from 'indent-string';
 import {typeOf} from './utils';
+import CustomError from 'custom-error-instance';
 
 export type NodeSpec
   = {type: 'boolean'}
@@ -60,7 +61,7 @@ export class Context {
       context = context.parent;
     } while (context);
     originalMessage = this.buildMessage(originalMessage, contextMessages);
-    throw new ValidationError(originalMessage, contextMessages);
+    throw validationError(originalMessage, contextMessages);
   }
 }
 
@@ -127,20 +128,16 @@ export function message(message: ?string, children: GenericMessage | Array<Gener
   return new Message(message, children);
 }
 
-export function ValidationError(originalMessage: GenericMessage, contextMessages: Array<GenericMessage>) {
-  // $FlowIssue: ...
-  let message = [originalMessage].concat(contextMessages).join('\n');
-  Error.call(this, message);
-  this.message = message;
-  this.originalMessage = originalMessage;
-  this.contextMessages = contextMessages;
-}
-ValidationError.prototype = new Error();
-// $FlowIssue: ...
-ValidationError.prototype.constructor = ValidationError;
-ValidationError.prototype.toString = function toString() {
-  return this.message.toString();
+export let ValidationError = CustomError('ValidationError');
+
+ValidationError.prototype.toString = function() {
+  return this.message;
 };
+
+export function validationError(originalMessage, contextMessages) {
+  let message = [originalMessage].concat(contextMessages).join('\n');
+  return new ValidationError({message, originalMessage, contextMessages});
+}
 
 export class Node {
 
@@ -371,7 +368,7 @@ function optimizeAlternativeError(errors) {
   }
   different.pop();
   different.push('');
-  return new ValidationError(new AlternativeMessage(different), same);
+  return validationError(new AlternativeMessage(different), same);
 }
 
 export class StringNode extends Node {

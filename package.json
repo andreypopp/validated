@@ -37,6 +37,7 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
+    "custom-error-instance": "^2.1.1",
     "indent-string": "^2.1.0",
     "invariant": "^2.2.1"
   }
