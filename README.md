@@ -1,5 +1,9 @@
 # validated
 
+[![Join the chat at https://gitter.im/andreypopp/sitegen](https://img.shields.io/badge/gitter-join%20chat-green.svg)](https://gitter.im/andreypopp/sitegen)
+[![Travis build status](https://img.shields.io/travis/andreypopp/validated/master.svg)](https://travis-ci.org/andreypopp/validated)
+[![Type System](https://img.shields.io/badge/typesystem-flowtype-green.svg)](http://flowtype.org/)
+
 Validate your configurations with precise error messages:
 
 * Define schema with validators which are agnostic to the actual representation
