@@ -42,12 +42,12 @@ export class Context {
     throw new Error('not implemented');
   }
 
-  buildMessage(originalMessage: GenericMessage, _contextMessages: Array<GenericMessage>): GenericMessage {
-    return originalMessage;
-  }
-
   withMessage(_message: GenericMessage): Context {
     throw new Error('not implemented');
+  }
+
+  buildMessage(originalMessage, _contextMessages) {
+    return originalMessage;
   }
 
   error(originalMessage: GenericMessage): void {
@@ -79,6 +79,14 @@ class NullContext extends Context {
   unwrap(validate) {
     let value = validate(undefined);
     return {value, context: this};
+  }
+
+  buildMessage(originalMessage, contextMessages) {
+    if (this.parent) {
+      return this.parent.buildMessage(originalMessage, contextMessages);
+    } else {
+      return originalMessage;
+    }
   }
 }
 
@@ -189,7 +197,6 @@ export class ObjectNode extends Node {
   }
 
   validate(context: Context) {
-    context = context.withMessage('While validating object');
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] === undefined) {
         keyContext.error(`Unexpected key: "${key}"`);
@@ -202,9 +209,9 @@ export class ObjectNode extends Node {
       if (this.values.hasOwnProperty(key)) {
         if (value[key] === undefined) {
           if (this.defaults[key] === undefined) {
-            let nullContext = new NullContext(
-              `While validating value at key "${key}"`,
-              context);
+            let message = `While validating missing value for key "${key}"`;
+            message = context.buildMessage(message, []);
+            let nullContext = new NullContext(message, context);
             let {value: missingValue} = this.values[key].validate(nullContext);
             if (missingValue !== undefined) {
               value[key] = missingValue;
