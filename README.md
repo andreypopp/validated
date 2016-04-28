@@ -31,6 +31,9 @@ representation of data, be it a JSON string or an object in memory:
       sequence, object, oneOf,
       string, number
     } from 'validated/schema'
+    import {
+      validate
+    } from 'validated/json5'
 
     let person = object({
       firstName: string,
@@ -43,6 +46,8 @@ representation of data, be it a JSON string or an object in memory:
     })
 
     let collection = sequence(oneOf(person, pet))
+
+    validate(collection, '[{name: "John", age: 26}, {...}]')
 
 ### List of schema primitives
 
