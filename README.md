@@ -36,8 +36,8 @@ representation of data, be it a JSON string or an object in memory:
     } from 'validated/json5'
 
     let person = object({
-      firstName: string,
-      lastName: string,
+      name: string,
+      age: number,
     })
 
     let pet = object({
