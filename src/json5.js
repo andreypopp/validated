@@ -87,14 +87,6 @@ var parse = (function () {
         }
       }
 
-      withMessage(message) {
-        if (this.message === null) {
-          return new Context(this.state, message, this.parent);
-        } else {
-          return new Context(this.state, message, this);
-        }
-      }
-
       unwrap(validate) {
         let {state, value: val} = value(white(this.state));
         val = validate(val);

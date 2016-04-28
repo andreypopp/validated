@@ -13,7 +13,7 @@ export function typeOf(value: any): string {
   }
 }
 
-export function isObject(obj) {
+export function isObject(obj: any): boolean {
   return (
     obj != null &&
     typeof obj === 'object' &&

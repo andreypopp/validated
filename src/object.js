@@ -3,12 +3,10 @@
  * @flow
  */
 
-import type {
-  Node, GenericMessage
-} from './schema';
+import type {Node} from './schema';
+import type {GenericMessage} from './message';
 
 import {
-  message,
   Context as ContextBase
 } from './schema';
 import {
@@ -29,23 +27,23 @@ class Context extends ContextBase {
 
   buildMapping(validate) {
     if (!isObject(this.value)) {
-      this.error(message(`Expected a mapping but got: ${typeOf(this.value)}`));
+      this.error(`Expected a mapping but got ${typeOf(this.value)}`);
     }
     let keys = Object.keys(this.value);
     let value = {};
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
-      let context = new Context(
+      let valueContext = new Context(
         this.value[key],
-        message('While validating key:', key),
+        `While validating value at key "${key}"`,
         this
       );
       let keyContext = new Context(
         key,
-        message('While validating key:', key),
+      `While validating key "${key}"`,
         this
       );
-      let res = validate(context, key, keyContext);
+      let res = validate(valueContext, key, keyContext);
       value[key] = res.value;
     }
     return {value, context: NULL_CONTEXT};
@@ -53,13 +51,13 @@ class Context extends ContextBase {
 
   buildSequence(validate) {
     if (!Array.isArray(this.value)) {
-      this.error(message(`Expected an array but got: ${typeOf(this.value)}`));
+      this.error(`Expected an array but got ${typeOf(this.value)}`);
     }
     let value: Array<any> = [];
     for (let i = 0; i < this.value.length; i++) {
       let context = new Context(
         this.value[i],
-        message('While validating value at index:', String(i)),
+        `While validating value at index ${i}`,
         this
       );
       let res = validate(context);
@@ -71,14 +69,6 @@ class Context extends ContextBase {
   unwrap(validate) {
     let value = validate(this.value);
     return {value, context: NULL_CONTEXT};
-  }
-
-  withMessage(message) {
-    if (this.message === null) {
-      return new Context(this.value, message, this.parent);
-    } else {
-      return new Context(this.value, message, this);
-    }
   }
 }
 

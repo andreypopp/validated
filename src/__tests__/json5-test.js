@@ -42,7 +42,7 @@ function itDoesNotValidate(valueName, schema, value, errorSpec) {
   it(description, () => assertFailure(schema, value, errorSpec), ValidationError);
 }
 
-describe.only('validated/json5', function() {
+describe('validated/json5', function() {
 
   describe('string', function() {
     let schema = string;
@@ -252,6 +252,7 @@ describe.only('validated/json5', function() {
       itDoesNotValidate('Boolean', schema, 'true', {
         format: [
           'Either:',
+          '',
           '  Expected value of type string but got boolean (line 1 column 1)',
           '',
           '  Expected value of type number but got boolean (line 1 column 1)',
@@ -268,6 +269,7 @@ describe.only('validated/json5', function() {
       itDoesNotValidate('Object {a: boolean}', schema, '{a: true}', {
         format: [
           'Either:',
+          '',
           '  Expected value of type number but got boolean',
           '',
           '  Expected value of type string but got boolean',
@@ -282,6 +284,7 @@ describe.only('validated/json5', function() {
       itDoesNotValidate('Object {a: boolean}', schema, '{a: true}', {
         format: [
           'Either:',
+          '',
           '  Expected value of type number but got boolean',
           '',
           '  Expected a mapping but got boolean',
@@ -296,12 +299,12 @@ describe.only('validated/json5', function() {
       itDoesNotValidate('Object {a: boolean}', schema, '{a: []}', {
         format: [
           'Either:',
+          '',
           '  Expected value of type number but got array',
           '',
           '  Expected value of type string but got array',
           '',
           '  Expected value of type boolean but got array',
-          '',
           '',
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')
@@ -313,13 +316,13 @@ describe.only('validated/json5', function() {
       itDoesNotValidate('Object {a: boolean}', schema, '{a: {c: "not ok"}}', {
         format: [
           'Either:',
+          '',
           '  Expected value of type number but got object',
           '',
           '  Expected value of type number but got string',
           '  While validating value at key "c" (line 1 column 9)',
           '',
           '  Expected value of type boolean but got object',
-          '',
           '',
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')
@@ -328,36 +331,32 @@ describe.only('validated/json5', function() {
 
     describe('with containers (nested complex symmetrical)', function() {
       let schema = oneOf(object({a: oneOf(object({c: boolean}), number)}), object({a: oneOf(object({c: number}), boolean)}));
+      itDoesNotValidate('Object {a: boolean}', schema, '{a: "not ok"}', {
+        format: [
+          'Either:',
+          '',
+          '  Expected a mapping but got string',
+          '',
+          '  Expected value of type number but got string',
+          '',
+          '  Expected value of type boolean but got string',
+          '',
+          'While validating value at key "a" (line 1 column 5)',
+        ].join('\n')
+      });
       itDoesNotValidate('Object {a: boolean}', schema, '{a: {c: "not ok"}}', {
         format: [
           'Either:',
+          '',
           '  Expected value of type boolean but got string',
           '  While validating value at key "c" (line 1 column 9)',
           '',
           '  Expected value of type number but got object',
           '',
-          '',
           '  Expected value of type number but got string',
           '  While validating value at key "c" (line 1 column 9)',
           '',
           '  Expected value of type boolean but got object',
-          '',
-          '',
-          'While validating value at key "a" (line 1 column 5)',
-        ].join('\n')
-      });
-      itDoesNotValidate('Object {a: boolean}', schema, '{a: "not ok"}', {
-        format: [
-          'Either:',
-          '  Expected a mapping but got string',
-          '',
-          '  Expected value of type number but got string',
-          '',
-          '',
-          '  Expected a mapping but got string',
-          '',
-          '  Expected value of type boolean but got string',
-          '',
           '',
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')

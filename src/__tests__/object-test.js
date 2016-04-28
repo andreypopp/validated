@@ -51,18 +51,12 @@ describe('validated/object', function() {
     itValidates('"ok"', schema, 'ok', 'ok');
     itDoesNotValidate('1', schema, 1, {
       format: [
-        'Expected value of type:',
-        '  string',
-        'Found value of type:',
-        '  number',
+        'Expected value of type string but got number',
       ].join('\n')
     });
     itDoesNotValidate('true', schema, true, {
       format: [
-        'Expected value of type:',
-        '  string',
-        'Found value of type:',
-        '  boolean',
+        'Expected value of type string but got boolean',
       ].join('\n')
     });
   });
@@ -72,18 +66,12 @@ describe('validated/object', function() {
     itValidates('1', schema, 1, 1);
     itDoesNotValidate('"ok"', schema, 'ok', {
       format: [
-        'Expected value of type:',
-        '  number',
-        'Found value of type:',
-        '  string',
+        'Expected value of type number but got string',
       ].join('\n')
     });
     itDoesNotValidate('true', schema, true, {
       format: [
-        'Expected value of type:',
-        '  number',
-        'Found value of type:',
-        '  boolean',
+        'Expected value of type number but got boolean',
       ].join('\n')
     });
   });
@@ -93,18 +81,12 @@ describe('validated/object', function() {
     itValidates('true', schema, true, true);
     itDoesNotValidate('1', schema, 1, {
       format: [
-        'Expected value of type:',
-        '  boolean',
-        'Found value of type:',
-        '  number',
+        'Expected value of type boolean but got number',
       ].join('\n')
     });
     itDoesNotValidate('"ok"', schema, 'ok', {
       format: [
-        'Expected value of type:',
-        '  boolean',
-        'Found value of type:',
-        '  string',
+        'Expected value of type boolean but got string',
       ].join('\n')
     });
   });
@@ -116,22 +98,22 @@ describe('validated/object', function() {
       itValidates('{a: 1}', schema, {a: 1}, {a: 1});
       itValidates('{a: 1, b: 2}', schema, {a: 1, b: 2}, {a: 1, b: 2});
       itDoesNotValidate('Array', schema, [], {
-        format: 'Expected a mapping but got: array'
+        format: 'Expected a mapping but got array'
       });
       itDoesNotValidate('null', schema, null, {
-        format: 'Expected a mapping but got: null'
+        format: 'Expected a mapping but got null'
       });
       itDoesNotValidate('undefined', schema, undefined, {
-        format: 'Expected a mapping but got: undefined'
+        format: 'Expected a mapping but got undefined'
       });
       itDoesNotValidate('Number', schema, 1, {
-        format: 'Expected a mapping but got: number'
+        format: 'Expected a mapping but got number'
       });
       itDoesNotValidate('Boolean', schema, true, {
-        format: 'Expected a mapping but got: boolean'
+        format: 'Expected a mapping but got boolean'
       });
       itDoesNotValidate('String', schema, 'not ok', {
-        format: 'Expected a mapping but got: string'
+        format: 'Expected a mapping but got string'
       });
     });
     describe('restricted schema', function() {
@@ -140,12 +122,8 @@ describe('validated/object', function() {
       itValidates('{a: "ok"}', schema, {a: 'ok'}, {a: 'ok'});
       itDoesNotValidate('{a: 42}', schema, {a: 42}, {
         format: [
-          'Expected value of type:',
-          '  string',
-          'Found value of type:',
-          '  number',
-          'While validating key:',
-          '  a'
+          'Expected value of type string but got number',
+          'While validating value at key "a"',
         ].join('\n')
       });
     });
@@ -157,59 +135,51 @@ describe('validated/object', function() {
       itValidates('{a: 1, b: 2}', schema, {a: 1, b: 2}, {a: 1, b: 2});
       itDoesNotValidate('{a: 1}', schema, {a: 1}, {
         format: [
-          'Expected a value but got:',
-          '  undefined',
-          'While validating key:',
-          '  b',
+          'Expected a value but got undefined',
+          'While validating missing value for key "b"',
         ].join('\n')
       });
       itDoesNotValidate('{b: 1}', schema, {b: 1}, {
         format: [
-          'Expected a value but got:',
-          '  undefined',
-          'While validating key:',
-          '  a',
+          'Expected a value but got undefined',
+          'While validating missing value for key "a"',
         ].join('\n')
       });
       itDoesNotValidate('{}', schema, {}, {
         format: [
-          'Expected a value but got:',
-          '  undefined',
-          'While validating key:',
-          '  a',
+          'Expected a value but got undefined',
+          'While validating missing value for key "a"',
         ].join('\n')
       });
       itDoesNotValidate('{c: 3}', schema, {c: 3}, {
         format: [
           'Unexpected key: "c"',
-          'While validating key:',
-          '  c',
+          'While validating key "c"',
         ].join('\n')
       });
       itDoesNotValidate('{a: 1, b: 2, c: 3}', schema, {a: 1, b: 2, c: 3}, {
         format: [
           'Unexpected key: "c"',
-          'While validating key:',
-          '  c',
+          'While validating key "c"',
         ].join('\n')
       });
       itDoesNotValidate('Array', schema, [], {
-        format: 'Expected a mapping but got: array'
+        format: 'Expected a mapping but got array'
       });
       itDoesNotValidate('null', schema, null, {
-        format: 'Expected a mapping but got: null'
+        format: 'Expected a mapping but got null'
       });
       itDoesNotValidate('undefined', schema, undefined, {
-        format: 'Expected a mapping but got: undefined'
+        format: 'Expected a mapping but got undefined'
       });
       itDoesNotValidate('Number', schema, 1, {
-        format: 'Expected a mapping but got: number'
+        format: 'Expected a mapping but got number'
       });
       itDoesNotValidate('Boolean', schema, true, {
-        format: 'Expected a mapping but got: boolean'
+        format: 'Expected a mapping but got boolean'
       });
       itDoesNotValidate('String', schema, 'not ok', {
-        format: 'Expected a mapping but got: string'
+        format: 'Expected a mapping but got string'
       });
     });
 
@@ -218,12 +188,8 @@ describe('validated/object', function() {
       itValidates('{a: "a", b: "b"}', schema, {a: 'a', b: 'b'}, {a: 'a', b: 'b'});
       itDoesNotValidate('{a: 1, b: 2}', schema, {a: 1}, {
         format: [
-          'Expected value of type:',
-          '  string',
-          'Found value of type:',
-          '  number',
-          'While validating key:',
-          '  a',
+          'Expected value of type string but got number',
+          'While validating value at key "a"',
         ].join('\n')
       });
     });
@@ -244,22 +210,22 @@ describe('validated/object', function() {
       itValidates('[42]', schema, [42], [42]);
       itValidates('[42, 43]', schema, [42, 43], [42, 43]);
       itDoesNotValidate('Object', schema, {}, {
-        format: 'Expected an array but got: object'
+        format: 'Expected an array but got object'
       });
       itDoesNotValidate('null', schema, null, {
-        format: 'Expected an array but got: null'
+        format: 'Expected an array but got null'
       });
       itDoesNotValidate('undefined', schema, undefined, {
-        format: 'Expected an array but got: undefined'
+        format: 'Expected an array but got undefined'
       });
       itDoesNotValidate('Number', schema, 1, {
-        format: 'Expected an array but got: number'
+        format: 'Expected an array but got number'
       });
       itDoesNotValidate('Boolean', schema, true, {
-        format: 'Expected an array but got: boolean'
+        format: 'Expected an array but got boolean'
       });
       itDoesNotValidate('String', schema, 'not ok', {
-        format: 'Expected an array but got: string'
+        format: 'Expected an array but got string'
       });
     });
 
@@ -269,12 +235,8 @@ describe('validated/object', function() {
       itValidates('["ok"]', schema, ['ok'], ['ok']);
       itDoesNotValidate('[42]', schema, [42], {
         format: [
-          'Expected value of type:',
-          '  string',
-          'Found value of type:',
-          '  number',
-          'While validating value at index:',
-          '  0',
+          'Expected value of type string but got number',
+          'While validating value at index 0',
         ].join('\n')
       });
     });
@@ -290,15 +252,9 @@ describe('validated/object', function() {
         format: [
           'Either:',
           '',
-          '  Expected value of type:',
-          '    string',
-          '  Found value of type:',
-          '    boolean',
+          '  Expected value of type string but got boolean',
           '',
-          '  Expected value of type:',
-          '    number',
-          '  Found value of type:',
-          '    boolean',
+          '  Expected value of type number but got boolean',
           '',
         ].join('\n')
       });
@@ -306,15 +262,9 @@ describe('validated/object', function() {
         format: [
           'Either:',
           '',
-          '  Expected value of type:',
-          '    string',
-          '  Found value of type:',
-          '    object',
+          '  Expected value of type string but got object',
           '',
-          '  Expected value of type:',
-          '    number',
-          '  Found value of type:',
-          '    object',
+          '  Expected value of type number but got object',
           '',
         ].join('\n')
       });
@@ -328,20 +278,11 @@ describe('validated/object', function() {
         format: [
           'Either:',
           '',
-          '  Expected value of type:',
-          '    number',
-          '  Found value of type:',
-          '    boolean',
-          '  While validating key:',
-          '    a',
+          '  Expected value of type number but got boolean',
           '',
-          '  Expected value of type:',
-          '    string',
-          '  Found value of type:',
-          '    boolean',
-          '  While validating key:',
-          '    a',
+          '  Expected value of type string but got boolean',
           '',
+          'While validating value at key "a"',
         ].join('\n')
       });
     });
@@ -354,10 +295,7 @@ describe('validated/object', function() {
     itValidates('"ok"', schema, 'ok', 'ok');
     itDoesNotValidate('1', schema, 1, {
       format: [
-        'Expected value to be one of:',
-        '  42, "ok"',
-        'But got:',
-        '  1',
+        'Expected value to be one of 42, "ok" but got 1',
       ].join('\n')
     });
   });
@@ -369,10 +307,7 @@ describe('validated/object', function() {
     itValidates('String', schema, 'not ok', 'not ok');
     itDoesNotValidate('Number', schema, 1, {
       format: [
-        'Expected value of type:',
-        '  string',
-        'Found value of type:',
-        '  number'
+        'Expected value of type string but got number',
       ].join('\n')
     });
   });

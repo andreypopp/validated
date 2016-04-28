@@ -1,12 +1,16 @@
 /**
+ * Serialization agnostic schema definition language.
+ *
  * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
  * @flow
  */
 
+import type {GenericMessage} from './message';
+
 import invariant from 'invariant';
-import indent from 'indent-string';
 import {typeOf} from './utils';
 import CustomError from 'custom-error-instance';
+import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec
   = {type: 'boolean'}
@@ -19,7 +23,6 @@ export type NodeSpec
   | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}}
 
 export type ValidateResult = {context: Context; value: any};
-export type GenericMessage = Message | string;
 
 export class Context {
 
@@ -43,15 +46,11 @@ export class Context {
     throw new Error('not implemented');
   }
 
-  withMessage(_message: GenericMessage): Context {
-    throw new Error('not implemented');
-  }
-
-  buildMessage(originalMessage, _contextMessages) {
+  buildMessage(originalMessage: ?GenericMessage, _contextMessages: Array<GenericMessage>) {
     return originalMessage;
   }
 
-  error(originalMessage: GenericMessage): void {
+  error(originalMessage: ?GenericMessage): void {
     let context = this;
     let contextMessages = [];
     do {
@@ -91,50 +90,13 @@ class NullContext extends Context {
   }
 }
 
-export class Message {
-
-  message: ?string;
-  children: Array<GenericMessage>;
-
-  constructor(message: ?string, children: Array<GenericMessage> = []) {
-    this.message = message;
-    this.children = children;
-  }
-
-  toString() {
-    if (this.message === null) {
-      return this.children.map(m => m.toString()).join('\n');
-    } else {
-      return [this.message]
-        .concat(this.children.map(m => indent(m.toString(), '  ', 1)))
-        .join('\n');
-    }
-  }
-}
-
-class AlternativeMessage extends Message {
-
-  static DESCRIPTION = 'Either:';
-
-  constructor(children) {
-    super(AlternativeMessage.DESCRIPTION, children);
-  }
-}
-
-export function message(message: ?string, children: GenericMessage | Array<GenericMessage> = []) {
-  if (!Array.isArray(children)) {
-    children = [children];
-  }
-  return new Message(message, children);
-}
-
 export let ValidationError = CustomError('ValidationError');
 
 ValidationError.prototype.toString = function() {
   return this.message;
 };
 
-export function validationError(originalMessage, contextMessages) {
+export function validationError(originalMessage: ?GenericMessage, contextMessages: Array<GenericMessage>) {
   let message = [originalMessage].concat(contextMessages).join('\n');
   return new ValidationError({message, originalMessage, contextMessages});
 }
@@ -304,7 +266,6 @@ export class OneOfNode extends Node {
     this.nodes = nodes;
   }
 
-  // $FlowIssue: can't infer termination due exception
   validate(context: Context): ValidateResult {
     let errors = [];
     for (let i = 0; i < this.nodes.length; i++) {
@@ -323,7 +284,7 @@ export class OneOfNode extends Node {
       errors.length > 0,
       'Impossible happened'
     );
-    throw optimizeAlternativeError(errors);
+    throw optimizeOneOfError(errors);
   }
 }
 
@@ -331,7 +292,7 @@ export function oneOf(...nodes: Array<Node>) {
   return new OneOfNode(nodes);
 }
 
-function optimizeAlternativeError(errors) {
+function optimizeOneOfError(errors) {
   let sections = errors
     .map(error =>
       [error.originalMessage].concat(error.contextMessages))
@@ -340,35 +301,54 @@ function optimizeAlternativeError(errors) {
       lines.reverse();
       return lines;
     });
-  let different = [];
+
+  // Collect same lines into a separate section
   let same = [];
-  for (let i = 0; true; i++) {
-    if (sections.every(lines => lines[i] === undefined)) {
-      break;
-    }
-    if (sections.reduce((a, b) => a[i] === b[i])) {
+  let i = 0;
+  while (!sections.every(lines => lines[i] === undefined)) {
+    if (sections.reduce((linesA, linesB) => linesA[i] === linesB[i])) {
       same.unshift(sections[0][i]);
-    } else {
-      sections.forEach(lines => {
-        let alternative = [];
-        lines = lines.slice(same.length);
-        lines.reverse();
-        lines.forEach(line => {
-          if (line instanceof AlternativeMessage) {
-            alternative = alternative.concat(line.children);
-          } else {
-            alternative.push(line);
-          }
-        });
-        different.push(message(null, alternative));
-        different.push('');
-      });
-      break;
     }
+    i++;
   }
-  different.pop();
-  different.push('');
-  return validationError(new AlternativeMessage(different), same);
+
+  // Flatten alternatives
+  let flattenedSections = [];
+  sections = sections
+    .map(lines => {
+      lines = lines.slice(same.length);
+      lines.reverse();
+      return lines;
+    })
+    .forEach(lines => {
+      if (lines.length === 1 && (lines[0] instanceof AlternativeMessage)) {
+        flattenedSections = flattenedSections.concat(lines[0].alternatives);
+      } else {
+        flattenedSections.push(message(null, lines));
+      }
+    });
+
+  // Collect alternatives
+  let alternatives = [];
+  flattenedSections.forEach(lines => {
+    if (!alternatives.find(msg => sameMessage(msg, lines))) {
+      alternatives.push(message(null, lines));
+    }
+  });
+
+  return validationError(new AlternativeMessage(alternatives), same);
+}
+
+function sameMessage(a, b) {
+  if (a === b) {
+    return true;
+  } else if (a instanceof Message) {
+    return (
+      sameMessage(a.message, b.message) &&
+      a.children.length === b.children.length &&
+      a.children.every((child, idx) => sameMessage(child, b.children[idx]))
+    );
+  }
 }
 
 export class StringNode extends Node {
