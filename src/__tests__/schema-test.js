@@ -5,7 +5,7 @@
 import assert from 'assert';
 import {validate as validateJSON5} from '../json5';
 import {validate as validateObject} from '../object';
-import {Node, sequence, number, object} from '../schema'
+import {Node, sequence, number, object} from '../schema';
 
 
 describe('validated/schema', function() {
@@ -15,8 +15,8 @@ describe('validated/schema', function() {
     class Point {
 
       constructor(x, y) {
-        this.x = x
-        this.y = y
+        this.x = x;
+        this.y = y;
       }
     }
 
@@ -24,23 +24,23 @@ describe('validated/schema', function() {
 
       validate(context) {
         // prevalidate value with primitive validators
-        let prevalidator = sequence(number)
-        let {value, context: nextContext} = prevalidator.validate(context)
+        let prevalidator = sequence(number);
+        let {value, context: nextContext} = prevalidator.validate(context);
 
         // perform additional validations
         if (value.length !== 2) {
 
           // just report an error, context information such as line/column
           // numbers will be injected automatically
-          context.error('Expected an array of length 2 but got: ' + value.length)
+          context.error('Expected an array of length 2 but got: ' + value.length);
         }
 
         // construct a Point object, do whatever you want here
-        let [x, y] = value
-        let point = new Point(x, y)
+        let [x, y] = value;
+        let point = new Point(x, y);
 
         // return constructed value and the next context
-        return {value: point, context: nextContext}
+        return {value: point, context: nextContext};
       }
     }
 

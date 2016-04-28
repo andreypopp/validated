@@ -203,7 +203,7 @@ export class SequenceNode extends Node {
   }
 }
 
-export function sequence(valueNode: Node) {
+export function sequence(valueNode: Node = any) {
   return new SequenceNode(valueNode);
 }
 
