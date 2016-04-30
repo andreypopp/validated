@@ -18,7 +18,9 @@ Validate your configurations with precise error messages:
 
 ## Installation
 
-    % npm install validated
+```
+% npm install validated
+```
 
 ## Usage
 
@@ -27,27 +29,49 @@ Validate your configurations with precise error messages:
 Schema is defined with validators which are agnostic to the actual
 representation of data, be it a JSON string or an object in memory:
 
-    import {
-      sequence, object, oneOf,
-      string, number
-    } from 'validated/schema'
-    import {
-      validate
-    } from 'validated/json5'
+```js+test
+import {
+  mapping, sequence, object, oneOf, maybe, enumeration, ref,
+  any, string, number, boolean
+} from 'validated/schema'
+```
 
-    let person = object({
-      name: string,
-      age: number,
-    })
+There's schema validator for JSON objects in memory:
 
-    let pet = object({
-      nickName: string,
-      age: number,
-    })
+```js+test
+import {
+  validate as validateObject
+} from 'validated/object'
+```
 
-    let collection = sequence(oneOf(person, pet))
+And schema validator for strings with JSON/JSON5 encoded data:
 
-    validate(collection, '[{name: "John", age: 26}, {...}]')
+```js+test
+import {
+  validate as validateJSON5
+} from 'validated/json5'
+```
+
+Let's define some schema first:
+```js+test
+let person = object({
+  name: string,
+  age: number,
+})
+
+let pet = object({
+  nickName: string,
+  age: number,
+})
+
+let collection = sequence(oneOf(person, pet))
+
+validateJSON5(collection, '[{name: "John", age: 26}, {nickName: "Tima", age: 3}]')
+// => [ { name: 'John', age: 26 }, { nickName: 'Tima', age: 3 } ]
+
+validateObject(collection, [{name: "John", age: 26}, {nickName: "Tima", age: 3}])
+// => [ { name: 'John', age: 26 }, { nickName: 'Tima', age: 3 } ]
+```
 
 ### List of schema primitives
 
@@ -55,52 +79,60 @@ representation of data, be it a JSON string or an object in memory:
 
 Validates any value but not `undefined` or `null`:
 
-    > validate(any, 'ok')
-    'ok'
+```js+test
+validateObject(any, 'ok')
+// => 'ok'
 
-    > validate(any, 42)
-    42
+validateObject(any, 42)
+// => 42
 
-    > validate(any, null)
-    ValidationError: expected a value but found null
+validateObject(any, null)
+// ValidationError: Expected a value but got null
 
-    > validate(any, undefined)
-    ValidationError: expected a value but found undefined
+validateObject(any, undefined)
+// ValidationError: Expected a value but got undefined
+```
 
 If you want to validated any value and even an absence of one then wrap it in
 `maybe`:
 
-    > validate(maybe(any), null)
-    null
+```js+test
+validateObject(maybe(any), null)
+// => null
 
-    > validate(maybe(any), undefined)
-    undefined
+validateObject(maybe(any), undefined)
+// => undefined
+```
 
 ##### `string`, `number`, `boolean`
 
 Validate strings, numbers and booleans correspondingly.
 
-    > validate(string, 'ok')
-    'ok'
+```js+test
+validateObject(string, 'ok')
+// => 'ok'
 
-    > validate(number, 42)
-    42
+validateObject(number, 42)
+// => 42
 
-    > validate(boolean, true)
-    true
+validateObject(boolean, true)
+// => true
+```
 
 ##### `enumeration`
 
 Validate enumerations:
 
-    > validate(enumeration('yes', 'no'), 'yes')
-    'yes'
+```js+test
+validateObject(enumeration('yes', 'no'), 'yes')
+// => 'yes'
 
-    > validate(enumeration('yes', 'no'), 'no')
-    'no'
+validateObject(enumeration('yes', 'no'), 'no')
+// => 'no'
 
-    > validate(enumeration('yes', 'no'), 'oops')
-    ValidationError: expected one of "yes", "no" found "oops"
+validateObject(enumeration('yes', 'no'), 'oops')
+// ValidationError: Expected value to be one of "yes", "no" but got "oops"
+```
 
 ##### `mapping`
 
@@ -108,22 +140,27 @@ Validate mappings from string keys to values.
 
 Untyped values (value validator defaults to `any`):
 
-    > validate(mapping(), {})
-    {}
+```js+test
+validateObject(mapping(), {})
+// => {}
 
-    > validate(mapping(), {a: 1, b: 'ok'})
-    {a: 1, b: 'ok'}
+validateObject(mapping(), {a: 1, b: 'ok'})
+// => { a: 1, b: 'ok' }
 
-    > validate(mapping(), 'oops')
-    ValidationError: expected a mapping but but found string
+validateObject(mapping(), 'oops')
+// ValidationError: Expected a mapping but got string
+```
 
 Typed value:
 
-    > validate(mapping(number), {a: 1})
-    {a: 1}
+```js+test
+validateObject(mapping(number), {a: 1})
+// => { a: 1 }
 
-    > validate(mapping(number), {a: 1, b: 'ok'})
-    ValidationError: expected a number but but found string at key "b"
+validateObject(mapping(number), {a: 1, b: 'ok'})
+// ValidationError: Expected value of type number but got string
+// While validating value at key "b"
+```
 
 ##### `sequence`
 
@@ -131,170 +168,190 @@ Validate sequences.
 
 Untyped values (value validator defaults to `any`):
 
-    > validate(sequence(), [])
-    []
+```js+test
+validateObject(sequence(), [])
+// => []
 
-    > validate(sequence(), [1, 2, 'ok'])
-    [1, 2, 'ok']
+validateObject(sequence(), [1, 2, 'ok'])
+// => [ 1, 2, 'ok' ]
 
-    > validate(sequence(), 'oops')
-    validationerror: expected a sequence but but found string
+validateObject(sequence(), 'oops')
+// ValidationError: Expected an array but got string
+```
 
 Typed value:
 
-    > validate(sequence(number), [1, 2])
-    [1, 2]
+```js+test
+validateObject(sequence(number), [1, 2])
+// => [ 1, 2 ]
 
-    > validate(sequence(number), [1, 2, 'ok'])
-    ValidationError: expected a number but but found string at index 2
+validateObject(sequence(number), [1, 2, 'ok'])
+// ValidationError: Expected value of type number but got string
+// While validating value at index 2
+```
 
 ##### `object`
 
 Validate objects, objects must specify validator for each of its keys:
 
-    let person = object({
-      name: string,
-      age: number,
-    })
+```js+test
+let person = object({
+  name: string,
+  age: number,
+})
 
-    > validate(person, {name: 'john', age: 27})
-    {name: 'john', age: 27}
+validateObject(person, {name: 'john', age: 27})
+// => { name: 'john', age: 27 }
 
-    > validate(person, {name: 'john'})
-    ValidationError: missing key "age"
+validateObject(person, {name: 'john'})
+// ValidationError: Expected value of type number but got undefined
+// While validating missing value for key "age"
 
-    > validate(person, {name: 'john', age: 'notok'})
-    ValidationError: invalid type for key "age"
+validateObject(person, {name: 'john', age: 'notok'})
+// ValidationError: Expected value of type number but got string
+// While validating value at key "age"
 
-    > validate(person, {name: 'john', age: 42, extra: 'oops'})
-    ValidationError: found extra key "extra"
+validateObject(person, {name: 'john', age: 42, extra: 'oops'})
+// ValidationError: Unexpected key: "extra"
+// While validating key "extra"
+```
 
 If some key is optional, wrap its validator in `maybe`:
 
-    let person = object({
-      name: string,
-      age: number,
-      nickName: maybe(string),
-    })
+```js+test
+let person = object({
+  name: string,
+  age: number,
+  nickName: maybe(string),
+})
 
-    > validate(person, {name: 'john', age: 27})
-    {name: 'john', age: 27}
+validateObject(person, {name: 'john', age: 27})
+// => { name: 'john', age: 27 }
 
-    > validate(person, {name: 'john', age: 27, nickName: 'J'})
-    {name: 'john', age: 27, nickName: 'J'}
+validateObject(person, {name: 'john', age: 27, nickName: 'J'})
+// => { name: 'john', age: 27, nickName: 'J' }
+```
 
 You can also specify default values for keys:
 
-    let person = object({
-      name: string,
-      age: number,
-      nickName: string,
-    }, {
-      nickName: 'John Doe'
-    })
+```js+test
+let person = object({
+  name: string,
+  age: number,
+  nickName: string,
+}, {
+  nickName: 'John Doe'
+})
 
-    > validate(person, {name: 'john', age: 27})
-    {name: 'john', age: 27, nickName: 'John Doe'}
+validateObject(person, {name: 'john', age: 27})
+// => { name: 'john', age: 27, nickName: 'John Doe' }
 
-    > validate(person, {name: 'john', age: 27, nickName: 'J'})
-    {name: 'john', age: 27, nickName: 'J'}
+validateObject(person, {name: 'john', age: 27, nickName: 'J'})
+// => { name: 'john', age: 27, nickName: 'J' }
+```
 
 ##### `maybe`
 
 Validates `null` and `undefined` but passes through any other value to the
 underlying validator:
 
-    > validate(maybe(string), null)
-    null
+```js+test
+validateObject(maybe(string), null)
+// => null
 
-    > validate(maybe(string), undefined)
-    undefined
+validateObject(maybe(string), undefined)
+// => undefined
 
-    > validate(maybe(string), 'ok')
-    'ok'
+validateObject(maybe(string), 'ok')
+// => 'ok'
 
-    > validate(maybe(string), 42)
-    ValidationError: ...
+validateObject(maybe(string), 42)
+// ValidationError: Expected value of type string but got number
+```
 
 ##### `oneOf`
 
 Tries a multiple validators and choose the one which succeeds first:
 
-    > validate(oneOf(string, number), 'ok')
-    'ok'
+```js+test
+validateObject(oneOf(string, number), 'ok')
+// => 'ok'
 
-    > validate(oneOf(string, number), 42)
-    42
+validateObject(oneOf(string, number), 42)
+// => 42
 
-    > validate(oneOf(string, number), true)
-    ValidationError: ...
+validateObject(oneOf(string, number), true)
+// ValidationError: Either:
+//
+//   Expected value of type string but got boolean
+//
+//   Expected value of type number but got boolean
+//
+```
 
 ##### `ref`
 
 Allows to define recursive validators:
 
-    let node = ref()
+```js+test
+let node = ref()
 
-    let tree = object({value: any, children: maybe(sequence(node))})
+let tree = object({value: any, children: maybe(sequence(node))})
 
-    node.set(tree)
+node.set(tree)
 
-    > validate(tree, {value: 'ok'})
-    {value: 'ok'}
+validateObject(tree, {value: 'ok'})
+// => { value: 'ok' }
 
-    > validate(tree, {value: 'ok', children: [{value: 'child'}]})
-    {value: 'ok', children: [{value: 'child'}]}
-
-### Validating objects in memory
-
-Example:
-
-    import {validate} from 'validated/object'
-
-    let obj = validate(schema, input)
-
-### Validating JSON/JSON5
-
-Example:
-
-    import {validate} from 'validated/json5'
-
-    let obj = validate(schema, input)
+validateObject(tree, {value: 'ok', children: [{value: 'child'}]})
+// => { value: 'ok', children: [ { value: 'child' } ] }
+```
 
 ### Defining new schema types
 
 Example:
 
-    import {Node, sequence, number} from 'validated/schema'
+```js+test
+import {Node} from 'validated/schema'
 
-    class Point {
+class Point {
 
-      constructor(x, y) {
-        this.x = x
-        this.y = y
-      }
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+}
+
+class PointNode extends Node {
+
+  validate(context) {
+    // prevalidate value with primitive validators
+    let prevalidator = sequence(number)
+    let {value, context: nextContext} = prevalidator.validate(context)
+
+    // perform additional validations
+    if (value.length !== 2) {
+
+      // just report an error, context information such as line/column
+      // numbers will be injected automatically
+      context.error('Expected an array of length 2 but got: ' + value.length)
     }
 
-    class PointNode extends Node {
+    // construct a Point object, do whatever you want here
+    let [x, y] = value
+    let point = new Point(x, y)
 
-      validate(context) {
-        // prevalidate value with primitive validators
-        let prevalidator = sequence(number)
-        let {value, context: nextContext} = prevalidator.validate(context)
+    // return constructed value and the next context
+    return {value: point, context: nextContext}
+  }
+}
 
-        // perform additional validations
-        if (value.length !== 2) {
+validateObject(new PointNode(), [1, 2])
+// => Point { x: 1, y: 2 }
 
-          // just report an error, context information such as line/column
-          // numbers will be injected automatically
-          context.error('Expected an array of length 2 but got: ' + value.length)
-        }
+validateJSON5(new PointNode(), '[1, 2]')
+// => Point { x: 1, y: 2 }
 
-        // construct a Point object, do whatever you want here
-        let [x, y] = value
-        let point = new Point(x, y)
-
-        // return constructed value and the next context
-        return {value: point, context: nextContext}
-      }
-    }
+validateJSON5(new PointNode(), '[1]')
+// ValidationError: Expected an array of length 2 but got: 1 (line 1 column 1)
+```

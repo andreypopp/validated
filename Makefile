@@ -9,14 +9,25 @@ MOCHA_OPTS    = -R dot --require babel-core/register
 build::
 	@$(MAKE) -j 8 $(LIB)
 
+build-silent::
+	@$(MAKE) -s -j 8 $(LIB)
+
 lint::
 	@$(BIN)/eslint src
 
 check::
 	@$(BIN)/flow --show-all-errors src
 
-test::
+test:: test-unit test-doc
+
+test-unit::
 	@$(BIN)/mocha $(MOCHA_OPTS) $(TESTS)
+
+test-doc:: build-silent
+	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:testdoc/register ./README.md
+
+test-ci::
+	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:testdoc/register --watch ./README.md
 
 ci::
 	@$(BIN)/mocha $(MOCHA_OPTS) --watch --watch-extensions json,md $(TESTS)
