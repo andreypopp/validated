@@ -26,10 +26,10 @@ test-unit::
 test-doc:: build-silent
 	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:mocha-doctest ./README.md
 
-test-ci::
+ci-doc::
 	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:mocha-doctest --watch ./README.md
 
-ci::
+ci-unit::
 	@$(BIN)/mocha $(MOCHA_OPTS) --watch --watch-extensions json,md $(TESTS)
 
 sloc::
