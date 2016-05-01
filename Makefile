@@ -24,10 +24,10 @@ test-unit::
 	@$(BIN)/mocha $(MOCHA_OPTS) $(TESTS)
 
 test-doc:: build-silent
-	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:testdoc/register ./README.md
+	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:mocha-doctest ./README.md
 
 test-ci::
-	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:testdoc/register --watch ./README.md
+	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:mocha-doctest --watch ./README.md
 
 ci::
 	@$(BIN)/mocha $(MOCHA_OPTS) --watch --watch-extensions json,md $(TESTS)
