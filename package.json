@@ -33,7 +33,7 @@
     "babel-preset-prometheusresearch": "^0.1.0",
     "eslint": "^2.8.0",
     "eslint-config-prometheusresearch": "^0.2.0",
-    "flow-bin": "^0.23.1",
+    "flow-bin": "^0.24.0",
     "mocha": "^2.4.5",
     "mocha-doctest": "^0.3.4"
   },
