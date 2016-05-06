@@ -323,15 +323,8 @@ describe('validated/json5', function() {
       let schema = oneOf(object({a: number}), object({a: oneOf(object({c: number}), boolean)}));
       itDoesNotValidate('Object {a: boolean}', schema, '{a: {c: "not ok"}}', {
         format: [
-          'Either:',
-          '',
-          '  Expected value of type number but got object',
-          '',
-          '  Expected value of type number but got string',
-          '  While validating value at key "c" (line 1 column 9)',
-          '',
-          '  Expected value of type boolean but got object',
-          '',
+          'Expected value of type number but got string',
+          'While validating value at key "c" (line 1 column 9)',
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')
       });
@@ -352,20 +345,15 @@ describe('validated/json5', function() {
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')
       });
-      itDoesNotValidate('Object {a: boolean}', schema, '{a: {c: "not ok"}}', {
+      itDoesNotValidate('{a: {c: "not ok"}}', schema, '{a: {c: "not ok"}}', {
         format: [
           'Either:',
           '',
           '  Expected value of type boolean but got string',
-          '  While validating value at key "c" (line 1 column 9)',
-          '',
-          '  Expected value of type number but got object',
           '',
           '  Expected value of type number but got string',
-          '  While validating value at key "c" (line 1 column 9)',
           '',
-          '  Expected value of type boolean but got object',
-          '',
+          'While validating value at key "c" (line 1 column 9)',
           'While validating value at key "a" (line 1 column 5)',
         ].join('\n')
       });

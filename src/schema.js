@@ -25,6 +25,8 @@ export type NodeSpec
 export type ValidateResult = {context: Context; value: any};
 
 type Refine = (value: any, error: (message: GenericMessage) => void) => any;
+type ValidateKeyValue = (context: Context, key: string, keyContext: Context) => ValidateResult;
+type ValidateValue = (context: Context) => ValidateResult;
 
 export class Context {
 
@@ -36,11 +38,11 @@ export class Context {
     this.parent = parent;
   }
 
-  buildMapping(_validateValue: (context: Context, key: string, keyContext: Context) => ValidateResult): ValidateResult {
+  buildMapping(_validateValue: ValidateKeyValue): ValidateResult {
     throw new Error('not implemented');
   }
 
-  buildSequence(_validateValue: (context: Context) => ValidateResult): ValidateResult {
+  buildSequence(_validateValue: ValidateValue): ValidateResult {
     throw new Error('not implemented');
   }
 
@@ -99,8 +101,9 @@ ValidationError.prototype.toString = function() {
 };
 
 export function validationError(originalMessage: ?GenericMessage, contextMessages: Array<GenericMessage>) {
-  let message = [originalMessage].concat(contextMessages).join('\n');
-  return new ValidationError({message, originalMessage, contextMessages});
+  let messages = [originalMessage].concat(contextMessages);
+  let message = messages.join('\n');
+  return new ValidationError({message, messages, originalMessage, contextMessages});
 }
 
 export class Node {
@@ -331,44 +334,54 @@ export function oneOf(...nodes: Array<Node>) {
 }
 
 function optimizeOneOfError(errors) {
-  let sections = errors
-    .map(error =>
-      [error.originalMessage].concat(error.contextMessages))
-    .map(lines => {
-      lines = lines.slice(0);
-      lines.reverse();
-      return lines;
-    });
+  let sections = errors.map(error => error.messages);
+
+  sections = sections.map(messages => {
+    if (messages[0] instanceof AlternativeMessage) {
+      return explode(messages[0].alternatives, messages.slice(1));
+    } else {
+      return [messages];
+    }
+  });
+  sections = flatten(sections);
+
+  let maxWeight = Math.max.apply(null, sections.map(message => weightMessage(message)));
+
+  sections = sections.filter(message => {
+    return weightMessage(message) === maxWeight;
+  });
+
+  if (sections.length === 1) {
+    return validationError(sections[0][0], sections[0].slice(1));
+  }
+
+  sections = sections.map(messages => {
+    messages = messages.slice(0);
+    messages.reverse();
+    return messages;
+  });
 
   // Collect same lines into a separate section
   let same = [];
   let i = 0;
   while (!sections.every(lines => lines[i] === undefined)) {
-    if (sections.reduce((linesA, linesB) => linesA[i] === linesB[i])) {
+    // $FlowIssue: ...
+    if (sections.every(lines => lines[i] === sections[0][i])) {
       same.unshift(sections[0][i]);
     }
     i++;
   }
 
-  // Flatten alternatives
-  let flattenedSections = [];
   sections = sections
     .map(lines => {
       lines = lines.slice(same.length);
       lines.reverse();
-      return lines;
-    })
-    .forEach(lines => {
-      if (lines.length === 1 && (lines[0] instanceof AlternativeMessage)) {
-        flattenedSections = flattenedSections.concat(lines[0].alternatives);
-      } else {
-        flattenedSections.push(message(null, lines));
-      }
+      return message(null, lines);
     });
 
   // Collect alternatives
   let alternatives = [];
-  flattenedSections.forEach(lines => {
+  sections.forEach(lines => {
     if (!alternatives.find(msg => sameMessage(msg, lines))) {
       alternatives.push(message(null, lines));
     }
@@ -382,10 +395,22 @@ function sameMessage(a, b) {
     return true;
   } else if (a instanceof Message) {
     return (
+      (b instanceof Message) &&
       sameMessage(a.message, b.message) &&
       a.children.length === b.children.length &&
+      // $FlowIssue: ...
       a.children.every((child, idx) => sameMessage(child, b.children[idx]))
     );
+  }
+}
+
+function weightMessage(msg) {
+  if (msg instanceof Message) {
+    return msg.children.length;
+  } else if (Array.isArray(msg)) {
+    return msg.length;
+  } else {
+    return 1;
   }
 }
 
@@ -455,4 +480,24 @@ export class RefNode extends Node {
 
 export function ref() {
   return new RefNode();
+}
+
+function flatten(array) {
+  let flattened = [];
+  for (let i = 0; i < array.length; i++) {
+    if (Array.isArray(array[i])) {
+      flattened = flattened.concat(array[i]);
+    } else {
+      flattened.push(array[i]);
+    }
+  }
+  return flattened;
+}
+
+function explode(variations, rest) {
+  let result = [];
+  for (let i = 0; i < variations.length; i++) {
+    result.push([variations[i]].concat(rest));
+  }
+  return result;
 }
