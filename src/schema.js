@@ -122,9 +122,9 @@ export class RefineNode extends Node {
   }
 
   validate(context: Context): ValidateResult {
-    let {context: nextContext, value} = this.validator.validate(context);
+    let {value, ...result} = this.validator.validate(context);
     value = this.refine(value, context.error.bind(context));
-    return {context: nextContext, value};
+    return {...result, value};
   }
 }
 
