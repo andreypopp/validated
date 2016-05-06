@@ -31,7 +31,7 @@ representation of data, be it a JSON string or an object in memory:
 
 ```js+test
 import {
-  mapping, sequence, object, oneOf, maybe, enumeration, ref,
+  mapping, sequence, object, partialObject, oneOf, maybe, enumeration, ref,
   any, string, number, boolean
 } from 'validated/schema'
 ```
@@ -248,6 +248,23 @@ validateObject(person, {name: 'john', age: 27})
 
 validateObject(person, {name: 'john', age: 27, nickName: 'J'})
 // => { name: 'john', age: 27, nickName: 'J' }
+```
+
+##### `partialObject`
+
+Validate a subset of the keys from the object, passing all extra keys through:
+
+```js+test
+let person = partialObject({
+  name: string,
+  age: number,
+})
+
+validateObject(person, {name: 'john', age: 27})
+// => { name: 'john', age: 27 }
+
+validateObject(person, {name: 'john', age: 42, extra: 'ok'})
+// => { name: 'john', age: 42, extra: 'ok' }
 ```
 
 ##### `maybe`

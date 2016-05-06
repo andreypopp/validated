@@ -5,7 +5,7 @@
 import assert from 'assert';
 import {
   ValidationError,
-  mapping, object, sequence, maybe, oneOf, enumeration,
+  mapping, object, partialObject, sequence, maybe, oneOf, enumeration,
   string, number, boolean, any
 } from '../schema';
 import {
@@ -202,43 +202,11 @@ describe('validated/object', function() {
 
   });
 
-  describe('sequence', function() {
-
-    describe('simple schema', function() {
-      let schema = sequence(any);
-      itValidates('[]', schema, [], []);
-      itValidates('[42]', schema, [42], [42]);
-      itValidates('[42, 43]', schema, [42, 43], [42, 43]);
-      itDoesNotValidate('Object', schema, {}, {
-        format: 'Expected an array but got object'
-      });
-      itDoesNotValidate('null', schema, null, {
-        format: 'Expected an array but got null'
-      });
-      itDoesNotValidate('undefined', schema, undefined, {
-        format: 'Expected an array but got undefined'
-      });
-      itDoesNotValidate('Number', schema, 1, {
-        format: 'Expected an array but got number'
-      });
-      itDoesNotValidate('Boolean', schema, true, {
-        format: 'Expected an array but got boolean'
-      });
-      itDoesNotValidate('String', schema, 'not ok', {
-        format: 'Expected an array but got string'
-      });
-    });
-
-    describe('restricted schema', function() {
-      let schema = sequence(string);
-      itValidates('[]', schema, [], []);
-      itValidates('["ok"]', schema, ['ok'], ['ok']);
-      itDoesNotValidate('[42]', schema, [42], {
-        format: [
-          'Expected value of type string but got number',
-          'While validating value at index 0',
-        ].join('\n')
-      });
+  describe('partialObject', function() {
+    describe('with fields', function() {
+      let schema = partialObject({a: any, b: any});
+      itValidates('{a: 1, b: 2', schema, {a: 1, b: 2}, {a: 1, b: 2});
+      itValidates('{a: 1, b: 2, c: 3}', schema, {a: 1, b: 2, c: 3}, {a: 1, b: 2, c: 3});
     });
   });
 

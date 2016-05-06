@@ -24,6 +24,8 @@ export type NodeSpec
 
 export type ValidateResult = {context: Context; value: any};
 
+type Refine = (value: any, error: (message: GenericMessage) => void) => any;
+
 export class Context {
 
   parent: ?Context;
@@ -108,14 +110,17 @@ export class Node {
     throw new Error(message);
   }
 
-  andThen(refine) {
+  andThen(refine: Refine): Node {
     return new RefineNode(this, refine);
   }
 }
 
 export class RefineNode extends Node {
 
-  constructor(validator, refine) {
+  validator: Node;
+  refine: Refine;
+
+  constructor(validator: Node, refine: Refine) {
     super();
     this.validator = validator;
     this.refine = refine;
@@ -161,23 +166,33 @@ export function mapping(valueNode: Node) {
   return new MappingNode(valueNode);
 }
 
+type ObjectNodeOptions = {
+  allowExtra: boolean;
+};
+
 export class ObjectNode extends Node {
 
   values: {[name: string]: Node};
   valuesKeys: Array<string>;
   defaults: Object;
+  options: ObjectNodeOptions;
 
-  constructor(values: {[name: string]: Node}, defaults: ?Object = {}) {
+  constructor(values: {[name: string]: Node}, defaults: ?Object = {}, options: ObjectNodeOptions) {
     super();
     this.values = values;
     this.valuesKeys = Object.keys(values);
     this.defaults = defaults || {};
+    this.options = options;
   }
 
   validate(context: Context) {
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] === undefined) {
-        keyContext.error(`Unexpected key: "${key}"`);
+        if (!this.options.allowExtra) {
+          keyContext.error(`Unexpected key: "${key}"`);
+        } else {
+          return valueContext.unwrap(value => value);
+        }
       }
       let value = this.values[key].validate(valueContext);
       return value;
@@ -205,7 +220,11 @@ export class ObjectNode extends Node {
 }
 
 export function object(values: {[name: string]: Node}, defaults: ?Object) {
-  return new ObjectNode(values, defaults);
+  return new ObjectNode(values, defaults, {allowExtra: false});
+}
+
+export function partialObject(values: {[name: string]: Node}, defaults: ?Object) {
+  return new ObjectNode(values, defaults, {allowExtra: true});
 }
 
 export class SequenceNode extends Node {

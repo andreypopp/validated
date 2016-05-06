@@ -5,7 +5,7 @@
 import assert from 'assert';
 import {
   ValidationError,
-  mapping, object, sequence, maybe, oneOf, enumeration,
+  mapping, object, partialObject, sequence, maybe, oneOf, enumeration,
   string, number, boolean, any
 } from '../schema';
 import {validate} from '../json5';
@@ -207,6 +207,14 @@ describe('validated/json5', function() {
       });
     });
 
+  });
+
+  describe('partialObject', function() {
+    describe('with fields', function() {
+      let schema = partialObject({a: any, b: any});
+      itValidates('{a: 1, b: 2', schema, '{a: 1, b: 2}', {a: 1, b: 2});
+      itValidates('{a: 1, b: 2, c: 3}', schema, '{a: 1, b: 2, c: 3}', {a: 1, b: 2, c: 3});
+    });
   });
 
   describe('sequence', function() {
