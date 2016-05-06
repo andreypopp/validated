@@ -31,6 +31,7 @@
     "babel-cli": "^6.7.7",
     "babel-core": "^6.7.7",
     "babel-preset-prometheusresearch": "^0.1.0",
+    "doctoc": "^1.0.0",
     "eslint": "^2.8.0",
     "eslint-config-prometheusresearch": "^0.2.0",
     "flow-bin": "^0.24.0",

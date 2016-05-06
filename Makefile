@@ -9,6 +9,9 @@ MOCHA_OPTS    = -R dot --require babel-core/register
 build::
 	@$(MAKE) -j 8 $(LIB)
 
+doctoc:
+	@$(BIN)/doctoc ./README.md
+
 build-silent::
 	@$(MAKE) -s -j 8 $(LIB)
 
