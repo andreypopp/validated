@@ -307,6 +307,37 @@ validateObject(tree, {value: 'ok', children: [{value: 'child'}]})
 // => { value: 'ok', children: [ { value: 'child' } ] }
 ```
 
+### Refining validations
+
+Example:
+
+```js+test
+class Point {
+
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+}
+
+let point = sequence(number).andThen((value, error) => {
+  if (value.length !== 2) {
+    error('Expected an array of length 2 but got: ' + value.length)
+  }
+  return new Point(value[0], value[1])
+})
+
+validateObject(point, [1, 2])
+// => Point { x: 1, y: 2 }
+
+validateJSON5(point, '[1, 2]')
+// => Point { x: 1, y: 2 }
+
+validateJSON5(point, '[1]')
+// ValidationError: Expected an array of length 2 but got: 1 (line 1 column 1)
+```
+
+
 ### Defining new schema types
 
 Example:

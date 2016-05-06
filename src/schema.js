@@ -107,6 +107,25 @@ export class Node {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
   }
+
+  andThen(refine) {
+    return new RefineNode(this, refine);
+  }
+}
+
+export class RefineNode extends Node {
+
+  constructor(validator, refine) {
+    super();
+    this.validator = validator;
+    this.refine = refine;
+  }
+
+  validate(context: Context): ValidateResult {
+    let {context: nextContext, value} = this.validator.validate(context);
+    value = this.refine(value, context.error.bind(context));
+    return {context: nextContext, value};
+  }
 }
 
 export class AnyNode extends Node {
