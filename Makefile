@@ -10,7 +10,7 @@ build::
 	@$(MAKE) -j 8 $(LIB)
 
 doctoc:
-	@$(BIN)/doctoc ./README.md
+	@$(BIN)/doctoc --title '**Table of Contents**' ./README.md
 
 build-silent::
 	@$(MAKE) -s -j 8 $(LIB)
