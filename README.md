@@ -16,6 +16,29 @@ Validate your configurations with precise error messages:
 * Get the result of a validation as an object: either a plain JSON or some
   domain specific classes if schema is defined in that way.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Schema](#schema)
+  - [List of schema primitives](#list-of-schema-primitives)
+      - [`any`](#any)
+      - [`string`, `number`, `boolean`](#string-number-boolean)
+      - [`enumeration`](#enumeration)
+      - [`mapping`](#mapping)
+      - [`sequence`](#sequence)
+      - [`object`](#object)
+      - [`partialObject`](#partialobject)
+      - [`maybe`](#maybe)
+      - [`oneOf`](#oneof)
+      - [`ref`](#ref)
+  - [Refining validations](#refining-validations)
+  - [Defining new schema types](#defining-new-schema-types)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Installation
 
 ```
