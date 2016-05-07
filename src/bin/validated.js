@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+/**
+ * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
+ * @flow
+ */
+
+import fs from 'fs';
+import program from 'commander';
+import pkg from '../../package.json';
+import {ValidationError} from '../schema';
+import * as repr from '../repr';
+import * as json5 from '../json5';
+
+let args = program
+  .version(pkg.version)
+  .command('validated <schema> <config>')
+  .parse(process.argv);
+
+let [schema, config] = args.args;
+
+if (!schema) {
+  error('missing <schema> argument');
+}
+
+if (!config) {
+  error('missing <config> argument');
+}
+
+function error(message) {
+  console.error('error: ' + message);
+  process.exit(1);
+}
+
+let schemaSrc = fs.readFileSync(schema, 'utf8');
+let schemaNode;
+try {
+  schemaNode = json5.validate(repr.schema, schemaSrc);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(error.message);
+    console.log(`While validating schema "${schema}"`);
+    process.exit(1);
+  } else {
+    throw error;
+  }
+}
+
+let configSrc = fs.readFileSync(config, 'utf8');
+let configValidated;
+try {
+  configValidated = json5.validate(schemaNode, configSrc);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(error.message);
+    console.log(`While validating "${config}"`);
+    process.exit(1);
+  } else {
+    throw error;
+  }
+}
+
+console.log(JSON.stringify(configValidated, null, 2));
