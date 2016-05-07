@@ -27,7 +27,7 @@ if (!config) {
 }
 
 function error(message) {
-  console.error('error: ' + message);
+  console.error('error: ' + message); // eslint-disable-line no-console
   process.exit(1);
 }
 
@@ -37,8 +37,8 @@ try {
   schemaNode = json5.validate(repr.schema, schemaSrc);
 } catch (error) {
   if (error instanceof ValidationError) {
-    console.error(error.message);
-    console.log(`While validating schema "${schema}"`);
+    console.error(error.message); // eslint-disable-line no-console
+    console.error(`While validating schema "${schema}"`); // eslint-disable-line no-console
     process.exit(1);
   } else {
     throw error;
@@ -51,12 +51,12 @@ try {
   configValidated = json5.validate(schemaNode, configSrc);
 } catch (error) {
   if (error instanceof ValidationError) {
-    console.error(error.message);
-    console.log(`While validating "${config}"`);
+    console.error(error.message); // eslint-disable-line no-console
+    console.error(`While validating "${config}"`); // eslint-disable-line no-console
     process.exit(1);
   } else {
     throw error;
   }
 }
 
-console.log(JSON.stringify(configValidated, null, 2));
+console.log(JSON.stringify(configValidated, null, 2)); // eslint-disable-line no-console
