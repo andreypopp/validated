@@ -228,7 +228,7 @@ export class ObjectNode extends Node {
     return {...res, value};
   }
 
-  _guessSuggestion(key) {
+  _guessSuggestion(key: string): ?string {
     let suggestions = this.valuesKeys.map(suggestion => ({
       distance: levenshtein(suggestion, key),
       suggestion
@@ -385,7 +385,6 @@ function optimizeOneOfError(errors) {
   let same = [];
   let i = 0;
   while (!sections.every(lines => lines[i] === undefined)) {
-    // $FlowIssue: ...
     if (sections.every(lines => lines[i] === sections[0][i])) {
       same.unshift(sections[0][i]);
     }
@@ -418,7 +417,6 @@ function sameMessage(a, b) {
       (b instanceof Message) &&
       sameMessage(a.message, b.message) &&
       a.children.length === b.children.length &&
-      // $FlowIssue: ...
       a.children.every((child, idx) => sameMessage(child, b.children[idx]))
     );
   }
