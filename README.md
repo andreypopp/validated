@@ -237,6 +237,10 @@ validateObject(person, {name: 'john', age: 'notok'})
 validateObject(person, {name: 'john', age: 42, extra: 'oops'})
 // ValidationError: Unexpected key: "extra"
 // While validating key "extra"
+
+validateObject(person, {nam: 'john', age: 42})
+// ValidationError: Unexpected key: "nam", did you mean "name"?
+// While validating key "nam"
 ```
 
 If some key is optional, wrap its validator in `maybe`:

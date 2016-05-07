@@ -10,6 +10,8 @@ import type {GenericMessage} from './message';
 import invariant from 'invariant';
 import {typeOf} from './utils';
 import CustomError from 'custom-error-instance';
+import levenshtein from 'levenshtein-edit-distance';
+import {flatten, sortBy} from 'lodash';
 import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec
@@ -192,7 +194,12 @@ export class ObjectNode extends Node {
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] === undefined) {
         if (!this.options.allowExtra) {
-          keyContext.error(`Unexpected key: "${key}"`);
+          let suggestion = this._guessSuggestion(key);
+          if (suggestion) {
+            keyContext.error(`Unexpected key: "${key}", did you mean "${suggestion}"?`);
+          } else {
+            keyContext.error(`Unexpected key: "${key}"`);
+          }
         } else {
           return valueContext.unwrap(value => value);
         }
@@ -219,6 +226,19 @@ export class ObjectNode extends Node {
       }
     }
     return {...res, value};
+  }
+
+  _guessSuggestion(key) {
+    let suggestions = this.valuesKeys.map(suggestion => ({
+      distance: levenshtein(suggestion, key),
+      suggestion
+    }));
+    let suggestion = sortBy(suggestions, suggestion => suggestion.distance)[0];
+    if (suggestion.distance === key.length) {
+      return null;
+    } else {
+      return suggestion.suggestion;
+    }
   }
 }
 
@@ -480,18 +500,6 @@ export class RefNode extends Node {
 
 export function ref() {
   return new RefNode();
-}
-
-function flatten(array) {
-  let flattened = [];
-  for (let i = 0; i < array.length; i++) {
-    if (Array.isArray(array[i])) {
-      flattened = flattened.concat(array[i]);
-    } else {
-      flattened.push(array[i]);
-    }
-  }
-  return flattened;
 }
 
 function explode(variations, rest) {

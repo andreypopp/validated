@@ -166,6 +166,22 @@ describe('validated/json5', function() {
       });
     });
 
+    describe('suggestions for unexpected key errors', function() {
+      let schema = object({entry: string, output: string});
+      itDoesNotValidate('{entry: "ok", outpu: "notok"}', schema, '{entry: "ok", outpu: "notok"}', {
+        format: [
+          'Unexpected key: "outpu", did you mean "output"?',
+          'While validating key "outpu" (line 1 column 15)',
+        ].join('\n')
+      });
+      itDoesNotValidate('{etry: "ok", output: "notok"}', schema, '{etry: "ok", output: "notok"}', {
+        format: [
+          'Unexpected key: "etry", did you mean "entry"?',
+          'While validating key "etry" (line 1 column 2)',
+        ].join('\n')
+      });
+    });
+
     describe('with fields with specific validator', function() {
       let schema = object({a: string, b: string});
       itValidates('{a: "a", b: "b"}', schema, "{a: 'a', b: 'b'}", {a: 'a', b: 'b'});
