@@ -102,6 +102,15 @@ ValidationError.prototype.toString = function() {
   return this.message;
 };
 
+ValidationError.prototype.addContextMessage = function(...messages) {
+  let error = validationError(
+    this.originalMessage,
+    this.contextMessages.concat(...messages)
+  );
+  error.stack = this.stack;
+  return error;
+};
+
 export function validationError(originalMessage: ?GenericMessage, contextMessages: Array<GenericMessage>) {
   let messages = [originalMessage].concat(contextMessages);
   let message = messages.join('\n');
