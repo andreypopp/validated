@@ -102,7 +102,7 @@ ValidationError.prototype.toString = function() {
   return this.message;
 };
 
-ValidationError.prototype.addContextMessage = function(...messages) {
+ValidationError.prototype.withContext = function(...messages) {
   let error = validationError(
     this.originalMessage,
     this.contextMessages.concat(...messages)
