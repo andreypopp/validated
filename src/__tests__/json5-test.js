@@ -6,7 +6,7 @@ import assert from 'assert';
 import {
   ValidationError,
   mapping, object, partialObject, sequence, maybe, oneOf, enumeration,
-  string, number, boolean, any
+  string, number, boolean, any, constant
 } from '../schema';
 import {validate} from '../json5';
 
@@ -43,6 +43,21 @@ function itDoesNotValidate(valueName, schema, value, errorSpec) {
 }
 
 describe('validated/json5', function() {
+
+  describe('constant', function() {
+    let schema = constant('ok');
+    itValidates('ok', schema, '"ok"', 'ok');
+    itDoesNotValidate('not-ok', schema, '"not-ok"', {
+      format: [
+        'Expected "ok" but got "not-ok" (line 1 column 1)'
+      ].join('\n')
+    });
+    itDoesNotValidate('1', schema, '1', {
+      format: [
+        'Expected "ok" but got 1 (line 1 column 1)'
+      ].join('\n')
+    });
+  });
 
   describe('string', function() {
     let schema = string;

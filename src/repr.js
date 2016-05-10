@@ -3,64 +3,50 @@
  * @flow
  */
 
-import type {
-  Context, ValidateResult
-} from './schema';
 import {
-  ref, oneOf, enumeration, object, sequence, mapping,
-  string, number, boolean, maybe, any,
-  Node
+  ref, oneOf, enumeration, object, partialObject, sequence, mapping,
+  string, number, boolean, maybe, any, constant
 } from './schema';
 
 let schemaSchemaSelf = ref();
 let schemaSchema = oneOf(
-  enumeration('string', 'number', 'boolean', 'any'),
-  object({maybe: schemaSchemaSelf}),
-  object({mapping: schemaSchemaSelf}),
-  object({sequence: schemaSchemaSelf}),
-  object({object: schemaSchemaSelf, defaults: maybe(any)}),
+
+  constant('string').andThen(_ => string),
+  constant('number').andThen(_ => number),
+  constant('boolean').andThen(_ => boolean),
+  constant('any').andThen(_ => any),
+
+  object({
+    enumeration: sequence(any)
+  }).andThen(obj => enumeration(obj.enumeration)),
+
+  object({
+    constant: any
+  }).andThen(obj => constant(obj.constant)),
+
+  object({
+    maybe: schemaSchemaSelf
+  }).andThen(obj => maybe(obj.maybe)),
+
+  object({
+    mapping: schemaSchemaSelf
+  }).andThen(obj => mapping(obj.mapping)),
+
+  object({
+    sequence: schemaSchemaSelf
+  }).andThen(obj => sequence(obj.sequence)),
+
+  object({
+    object: mapping(schemaSchemaSelf),
+    defaults: maybe(any)
+  }).andThen(obj => object(obj.object, obj.defaults)),
+
+  object({
+    partialObject: mapping(schemaSchemaSelf),
+    defaults: maybe(any)
+  }).andThen(obj => partialObject(obj.partialObject, obj.defaults)),
+
 );
 
-class SchemaNode extends Node {
-
-  // $FlowIssue: ...
-  validate(context: Context): ValidateResult {
-    let {value, context: nextContext} = schemaSchema.validate(context);
-    if (typeof value === 'string') {
-      switch (value) {
-        case 'boolean': {
-          return {value: boolean, context: nextContext};
-        }
-        case 'string': {
-          return {value: string, context: nextContext};
-        }
-        case 'number': {
-          return {value: number, context: nextContext};
-        }
-        case 'any': {
-          return {value: any, context: nextContext};
-        }
-      }
-    } else {
-      if (value.maybe) {
-        return {value: maybe(value.maybe), context: nextContext};
-      } else if (value.mapping) {
-        return {value: mapping(value.mapping), context: nextContext};
-      } else if (value.sequence) {
-        return {value: sequence(value.sequence), context: nextContext};
-      } else if (value.object) {
-        let values = {};
-        for (let key in value.object) {
-          if (value.object.hasOwnProperty(key)) {
-            values[key] = value.object[key];
-          }
-        }
-        let defaults = value.defaults || {};
-        return {value: object(values, defaults), context: nextContext};
-      }
-    }
-  }
-}
-
-export let schema = new SchemaNode;
-schemaSchemaSelf.set(schema);
+export let schema = schemaSchema;
+schemaSchemaSelf.set(schemaSchema);

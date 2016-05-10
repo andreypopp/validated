@@ -161,6 +161,31 @@ export class AnyNode extends Node {
 
 export let any = new AnyNode();
 
+export class ConstantNode extends Node {
+
+  value: any;
+  eq: (v1: any, v2: any) => boolean;
+
+  constructor(value: any, eq: (v1: any, v2: any) => boolean) {
+    super();
+    this.value = value;
+    this.eq = eq;
+  }
+
+  validate(context: Context) {
+    return context.unwrap(value => {
+      if (!this.eq(value, this.value)) {
+        context.error(`Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`);
+      }
+      return value;
+    });
+  }
+}
+
+export function constant(value: any, eq: (v1: any, v2: any) => boolean = (v1, v2) => v1 === v2) {
+  return new ConstantNode(value, eq);
+}
+
 export class MappingNode extends Node {
 
   valueNode: Node;
