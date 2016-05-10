@@ -107,7 +107,6 @@ ValidationError.prototype.addContextMessage = function(...messages) {
     this.originalMessage,
     this.contextMessages.concat(...messages)
   );
-  error.stack = this.stack;
   return error;
 };
 
