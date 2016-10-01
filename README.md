@@ -36,6 +36,7 @@ Validate your configurations with precise error messages:
       - [`ref`](#ref)
   - [Refining validations](#refining-validations)
   - [Defining new schema types](#defining-new-schema-types)
+  - [Integration with FlowType](#integration-with-flowtype)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
