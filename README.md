@@ -435,11 +435,11 @@ validateJSON5(new PointNode(), '[1]')
 ### Integration with FlowType
 
 Validated library uses [FlowType][] extensively. Its API is defined in a way
-which automatically infers types for the validated values:
+which automatically infers types for produced values:
 
 ```js
 import {object, string, number} from 'validated/schema'
-import {validate} } from 'validated/json5'
+import {validate} from 'validated/json5'
 
 let personSchema = object({
   name: string,
