@@ -226,7 +226,7 @@ type ObjectNodeOptions = {
 };
 
 export class ObjectNode<S: {[name: string]: Node<*>}>
-  extends Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
+  extends Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
 
   values: S;
   valuesKeys: Array<string>;
@@ -245,7 +245,7 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
     this.options = options;
   }
 
-  validate(context: Context): $ObjMap<S, <V>(v: Node<V>) => V> {
+  validate(context: Context): $ObjMap<S, <V>(v: Node<V>) => V> { // eslint-disable-line no-undef
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] == undefined) {
         if (!this.options.allowExtra) {
@@ -300,14 +300,14 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
 export function object<S: {[name: string]: Node<*>}>(
   values: S,
   defaults: ?Object
-): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
   return new ObjectNode(values, defaults, {allowExtra: false});
 }
 
 export function partialObject<S: {[name: string]: Node<*>}>(
   values: S,
   defaults: ?Object
-): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
   return new ObjectNode(values, defaults, {allowExtra: true});
 }
 

@@ -16,6 +16,10 @@
   },
   "eslintConfig": {
     "extends": "prometheusresearch",
+    "globals": {
+      "$NonMaybeType": true,
+      "$ObjMap": true
+    },
     "env": {
       "mocha": true
     }
@@ -35,8 +39,9 @@
     "babel-core": "^6.7.7",
     "babel-preset-prometheusresearch": "^0.1.0",
     "doctoc": "^1.0.0",
-    "eslint": "^2.8.0",
+    "eslint": "^3.0.0",
     "eslint-config-prometheusresearch": "^0.2.0",
+    "eslint-plugin-react": "^6.3.0",
     "flow-bin": "^0.33.0",
     "mocha": "^2.4.5",
     "mocha-doctest": "^0.3.4"
