@@ -430,3 +430,28 @@ validateJSON5(new PointNode(), '[1, 2]')
 validateJSON5(new PointNode(), '[1]')
 // ValidationError: Expected an array of length 2 but got: 1 (line 1 column 1)
 ```
+
+### Integration with FlowType
+
+Validated library provides uses [FlowType][] extensively. Its API is defined in
+a way which automatically infers types for the validated values:
+
+```js
+import {object, string, number} from 'validated/schema'
+import {validate} } from 'validated/json5'
+
+let personSchema = object({
+  name: string,
+  age: number,
+})
+
+let value: {name: string; age: number}  = validate(
+  personSchema,
+  '{"name": "Andrey", age: 29}'
+)
+```
+
+Note that the type annotation isn't needed — FlowType infers the type
+automatically based on a schema.
+
+[FlowType]: https://flowtype.org/
