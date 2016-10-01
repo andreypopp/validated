@@ -446,7 +446,7 @@ let personSchema = object({
   age: number,
 })
 
-let value: {name: string; age: number}  = validate(
+let value: {name: string; age: number} = validate(
   personSchema,
   '{"name": "Andrey", age: 29}'
 )
