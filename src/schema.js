@@ -24,11 +24,15 @@ export type NodeSpec
   | {type: 'sequence', value: NodeSpec}
   | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}}
 
-export type ValidateResult = {context: Context; value: any};
+export type ValidateResult<V> = {
+  context: Context;
+  value: V
+};
 
-type Refine = (value: any, error: (message: GenericMessage) => void) => any;
-type ValidateKeyValue = (context: Context, key: string, keyContext: Context) => ValidateResult;
-type ValidateValue = (context: Context) => ValidateResult;
+type Refine<A, B> = (
+  value: A,
+  error: (message: GenericMessage) => void
+) => B;
 
 export class Context {
 
@@ -40,15 +44,23 @@ export class Context {
     this.parent = parent;
   }
 
-  buildMapping(_validateValue: ValidateKeyValue): ValidateResult {
+  buildMapping<V>(
+    _validateValue: (
+      context: Context,
+      key: string,
+      keyContext: Context
+    ) => ValidateResult<V>
+  ): ValidateResult<{[key: string]: V}> {
     throw new Error('not implemented');
   }
 
-  buildSequence(_validateValue: ValidateValue): ValidateResult {
+  buildSequence<V>(
+    _validateValue: (context: Context) => ValidateResult<V>
+  ): ValidateResult<Array<V>> {
     throw new Error('not implemented');
   }
 
-  unwrap(_validate: (value: any) => any): ValidateResult {
+  unwrap<V>(_validate: (value: mixed) => V): ValidateResult<V> {
     throw new Error('not implemented');
   }
 
@@ -56,7 +68,7 @@ export class Context {
     return originalMessage;
   }
 
-  error(originalMessage: ?GenericMessage): void {
+  error(originalMessage: ?GenericMessage) {
     let context = this;
     let contextMessages = [];
     do {
@@ -66,23 +78,21 @@ export class Context {
       context = context.parent;
     } while (context);
     originalMessage = this.buildMessage(originalMessage, contextMessages);
-    throw validationError(originalMessage, contextMessages);
+    return validationError(originalMessage, contextMessages);
   }
 }
 
 class NullContext extends Context {
 
-  // $FlowIssue: ...
   buildMapping(_validateValue) {
-    this.error('Expected a mapping value but got undefined');
+    throw this.error('Expected a mapping value but got undefined');
   }
 
-  // $FlowIssue: ...
   buildSequence(_validateValue) {
-    this.error('Expected an array value but got undefined');
+    throw this.error('Expected an array value but got undefined');
   }
 
-  unwrap(validate) {
+  unwrap<V>(validate: (value: mixed) => V): ValidateResult<V> {
     let value = validate(undefined);
     return {value, context: this};
   }
@@ -116,91 +126,98 @@ export function validationError(originalMessage: ?GenericMessage, contextMessage
   return new ValidationError({message, messages, originalMessage, contextMessages});
 }
 
-export class Node {
+export class Node<V> {
 
-  validate(_context: Context): ValidateResult {
+  validate(_context: Context): ValidateResult<V> {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
   }
 
-  andThen(refine: Refine): Node {
-    return new RefineNode(this, refine);
+  andThen<RV>(refine: Refine<V, RV>): RefineNode<V, RV> {
+    let node: RefineNode<V, RV> = new RefineNode(this, refine);
+    return node;
   }
 }
 
-export class RefineNode extends Node {
+export class RefineNode<V, RV> extends Node<RV> {
 
-  validator: Node;
-  refine: Refine;
+  validator: Node<V>;
+  refine: Refine<V, RV>;
 
-  constructor(validator: Node, refine: Refine) {
+  constructor(validator: Node<V>, refine: Refine<V, RV>) {
     super();
     this.validator = validator;
     this.refine = refine;
   }
 
-  validate(context: Context): ValidateResult {
-    let {value, ...result} = this.validator.validate(context);
-    value = this.refine(value, context.error.bind(context));
-    return {...result, value};
+  validate(context: Context): ValidateResult<RV> {
+    let {value, context: nextContext} = this.validator.validate(context);
+    let nextValue: RV = this.refine(value, context.error.bind(context));
+    return {value: nextValue, context: nextContext};
   }
 }
 
-export class AnyNode extends Node {
+export class AnyNode<V: mixed> extends Node<$NonMaybeType<V>> {
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<$NonMaybeType<V>> {
     return context.unwrap(value => {
       if (value == null) {
         let repr = value === null ? 'null' : 'undefined';
-        context.error(`Expected a value but got ${repr}`);
+        throw context.error(`Expected a value but got ${repr}`);
       }
       return value;
     });
   }
 }
 
-export let any = new AnyNode();
+export let any: AnyNode<*> = new AnyNode();
 
-export class ConstantNode extends Node {
+export class ConstantNode<V> extends Node<V> {
 
-  value: any;
-  eq: (v1: any, v2: any) => boolean;
+  value: V;
+  eq: (v1: mixed, v2: mixed) => boolean;
 
-  constructor(value: any, eq: (v1: any, v2: any) => boolean) {
+  constructor(value: V, eq: (v1: mixed, v2: mixed) => boolean) {
     super();
     this.value = value;
     this.eq = eq;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<V> {
     return context.unwrap(value => {
       if (!this.eq(value, this.value)) {
-        context.error(`Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`);
+        throw context.error(`Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`);
       }
+      // $FlowIssue: not a flow issue really, but we need to propagate type info
       return value;
     });
   }
 }
 
-export function constant(value: any, eq: (v1: any, v2: any) => boolean = (v1, v2) => v1 === v2) {
+export function constant<V>(
+  value: V,
+  eq: (v1: mixed, v2: mixed) => boolean = (v1, v2) => v1 === v2
+): ConstantNode<V> {
   return new ConstantNode(value, eq);
 }
 
-export class MappingNode extends Node {
+type MappingOf<V> = {[key: string]: V}
 
-  valueNode: Node;
+export class MappingNode<V> extends Node<MappingOf<V>> {
 
-  constructor(valueNode: Node = any) {
+  valueNode: Node<V>;
+
+  constructor(valueNode: Node<V>) {
     super();
     this.valueNode = valueNode;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<MappingOf<V>> {
     return context.buildMapping(context => this.valueNode.validate(context));
   }
 }
 
-export function mapping(valueNode: Node) {
+export function mapping<V>(valueNode?: Node<V> = any): MappingNode<V> {
   return new MappingNode(valueNode);
 }
 
@@ -208,14 +225,19 @@ type ObjectNodeOptions = {
   allowExtra: boolean;
 };
 
-export class ObjectNode extends Node {
+export class ObjectNode<S: {[name: string]: Node<*>}>
+  extends Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
 
-  values: {[name: string]: Node};
+  values: S;
   valuesKeys: Array<string>;
   defaults: Object;
   options: ObjectNodeOptions;
 
-  constructor(values: {[name: string]: Node}, defaults: ?Object = {}, options: ObjectNodeOptions) {
+  constructor(
+    values: S,
+    defaults: ?Object = {},
+    options: ObjectNodeOptions
+  ) {
     super();
     this.values = values;
     this.valuesKeys = Object.keys(values);
@@ -223,18 +245,18 @@ export class ObjectNode extends Node {
     this.options = options;
   }
 
-  validate(context: Context) {
+  validate(context: Context): $ObjMap<S, <V>(v: Node<V>) => V> {
     let res = context.buildMapping((valueContext, key, keyContext) => {
-      if (this.values[key] === undefined) {
+      if (this.values[key] == undefined) {
         if (!this.options.allowExtra) {
           let suggestion = this._guessSuggestion(key);
           if (suggestion) {
-            keyContext.error(`Unexpected key: "${key}", did you mean "${suggestion}"?`);
+            throw keyContext.error(`Unexpected key: "${key}", did you mean "${suggestion}"?`);
           } else {
-            keyContext.error(`Unexpected key: "${key}"`);
+            throw keyContext.error(`Unexpected key: "${key}"`);
           }
         } else {
-          return valueContext.unwrap(value => value);
+          return (valueContext.unwrap(value => value): any);
         }
       }
       let value = this.values[key].validate(valueContext);
@@ -250,7 +272,7 @@ export class ObjectNode extends Node {
             let nullContext = new NullContext(message, context);
             let {value: missingValue} = this.values[key].validate(nullContext);
             if (missingValue !== undefined) {
-              value[key] = missingValue;
+              value[key] = (missingValue: any);
             }
           } else {
             value[key] = this.defaults[key];
@@ -275,42 +297,48 @@ export class ObjectNode extends Node {
   }
 }
 
-export function object(values: {[name: string]: Node}, defaults: ?Object) {
+export function object<S: {[name: string]: Node<*>}>(
+  values: S,
+  defaults: ?Object
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
   return new ObjectNode(values, defaults, {allowExtra: false});
 }
 
-export function partialObject(values: {[name: string]: Node}, defaults: ?Object) {
+export function partialObject<S: {[name: string]: Node<*>}>(
+  values: S,
+  defaults: ?Object
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
   return new ObjectNode(values, defaults, {allowExtra: true});
 }
 
-export class SequenceNode extends Node {
+export class SequenceNode<V> extends Node<Array<V>> {
 
-  valueNode: Node;
+  valueNode: Node<V>;
 
-  constructor(valueNode: Node = any) {
+  constructor(valueNode: Node<V> = any) {
     super();
     this.valueNode = valueNode;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<Array<V>> {
     return context.buildSequence(context => this.valueNode.validate(context));
   }
 }
 
-export function sequence(valueNode: Node = any) {
+export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
 
-export class MaybeNode extends Node {
+export class MaybeNode<V> extends Node<?V> {
 
-  valueNode: Node;
+  valueNode: Node<V>;
 
-  constructor(valueNode: Node) {
+  constructor(valueNode: Node<V>) {
     super();
     this.valueNode = valueNode;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<?V> {
     return context.unwrap(value => {
       if (value == null) {
         return value;
@@ -320,20 +348,20 @@ export class MaybeNode extends Node {
   }
 }
 
-export function maybe(valueNode: Node) {
+export function maybe<V>(valueNode: Node<V>): MaybeNode<V> {
   return new MaybeNode(valueNode);
 }
 
-export class EnumerationNode extends Node {
+export class EnumerationNode<V> extends Node<mixed> {
 
-  values: Array<any>;
+  values: Array<V>;
 
-  constructor(values: Array<any>) {
+  constructor(values: Array<V>) {
     super();
     this.values = values;
   }
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<mixed> {
     return context.unwrap(value => {
       for (let i = 0; i < this.values.length; i++) {
         if (value === this.values[i]) {
@@ -342,25 +370,26 @@ export class EnumerationNode extends Node {
       }
       let expectation = this.values.map(v => JSON.stringify(v)).join(', ');
       let repr = JSON.stringify(value);
-      context.error(`Expected value to be one of ${expectation} but got ${repr}`);
+      throw context.error(`Expected value to be one of ${expectation} but got ${repr}`);
     });
   }
 }
 
-export function enumeration(...values: Array<any>) {
-  return new EnumerationNode(values);
+export function enumeration(...values: Array<mixed>) {
+  let node: EnumerationNode<*> = new EnumerationNode(values);
+  return node;
 }
 
 export class OneOfNode extends Node {
 
-  nodes: Array<Node>;
+  nodes: Array<Node<*>>;
 
-  constructor(nodes: Array<Node>) {
+  constructor(nodes: Array<Node<*>>) {
     super();
     this.nodes = nodes;
   }
 
-  validate(context: Context): ValidateResult {
+  validate(context: Context): ValidateResult<*> {
     let errors = [];
     for (let i = 0; i < this.nodes.length; i++) {
       try {
@@ -382,7 +411,7 @@ export class OneOfNode extends Node {
   }
 }
 
-export function oneOf(...nodes: Array<Node>) {
+export function oneOf(...nodes: Array<Node<*>>) {
   return new OneOfNode(nodes);
 }
 
@@ -465,12 +494,12 @@ function weightMessage(msg) {
   }
 }
 
-export class StringNode extends Node {
+export class StringNode extends Node<string> {
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<string> {
     return context.unwrap(value => {
       if (typeof value !== 'string') {
-        context.error(`Expected value of type string but got ${typeOf(value)}`);
+        throw context.error(`Expected value of type string but got ${typeOf(value)}`);
       }
       return value;
     });
@@ -479,12 +508,12 @@ export class StringNode extends Node {
 
 export let string = new StringNode();
 
-export class NumberNode extends Node {
+export class NumberNode extends Node<number> {
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<number> {
     return context.unwrap(value => {
       if (typeof value !== 'number') {
-        context.error(`Expected value of type number but got ${typeOf(value)}`);
+        throw context.error(`Expected value of type number but got ${typeOf(value)}`);
       }
       return value;
     });
@@ -493,12 +522,12 @@ export class NumberNode extends Node {
 
 export let number = new NumberNode();
 
-export class BooleanNode extends Node {
+export class BooleanNode extends Node<boolean> {
 
-  validate(context: Context) {
+  validate(context: Context): ValidateResult<boolean> {
     return context.unwrap(value => {
       if (typeof value !== 'boolean') {
-        context.error(`Expected value of type boolean but got ${typeOf(value)}`);
+        throw context.error(`Expected value of type boolean but got ${typeOf(value)}`);
       }
       return value;
     });
@@ -507,16 +536,16 @@ export class BooleanNode extends Node {
 
 export let boolean = new BooleanNode();
 
-export class RefNode extends Node {
+export class RefNode<V> extends Node<V> {
 
-  node: ?Node;
+  node: ?Node<V>;
 
   constructor() {
     super();
     this.node = null;
   }
 
-  validate(context: Context): ValidateResult {
+  validate(context: Context): ValidateResult<V> {
     invariant(
       this.node != null,
       'Trying to validate with an unitialized ref'
@@ -524,13 +553,14 @@ export class RefNode extends Node {
     return this.node.validate(context);
   }
 
-  set(node: Node): void {
+  set(node: Node<V>): void {
     this.node = node;
   }
 }
 
 export function ref() {
-  return new RefNode();
+  let node: RefNode<*> = new RefNode();
+  return node;
 }
 
 function explode(variations, rest) {

@@ -32,7 +32,7 @@ var parse = (function () {
         let state = white(this.state);
         if (state.ch !== '{') {
           let {value: val} = value(state);
-          this.error(`Expected a mapping but got ${typeOf(val)}`);
+          throw this.error(`Expected a mapping but got ${typeOf(val)}`);
         } else {
           let {value: val, state: nextState} = object(state, (key, valueState, keyState) => {
             valueState = white(valueState);
@@ -60,7 +60,7 @@ var parse = (function () {
         let state = white(this.state);
         if (state.ch !== '[') {
           let {value: val} = value(state);
-          this.error(`Expected an array but got ${typeOf(val)}`);
+          throw this.error(`Expected an array but got ${typeOf(val)}`);
         } else {
           let {value: val, state: nextState} = array(state, (idx, valueState) => {
             valueState = white(valueState);

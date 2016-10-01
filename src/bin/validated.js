@@ -4,7 +4,10 @@
  * @flow
  */
 
+import type {Node} from '../schema';
+
 import fs from 'fs';
+import invariant from 'invariant';
 import program from 'commander';
 import pkg from '../../package.json';
 import {ValidationError} from '../schema';
@@ -32,7 +35,7 @@ function error(message) {
 }
 
 let schemaSrc = fs.readFileSync(schema, 'utf8');
-let schemaNode;
+let schemaNode: Node<*>;
 try {
   schemaNode = json5.validate(repr.schema, schemaSrc);
 } catch (error) {
@@ -44,6 +47,8 @@ try {
     throw error;
   }
 }
+
+invariant(schemaNode != null, 'Impossible');
 
 let configSrc = fs.readFileSync(config, 'utf8');
 let configValidated;

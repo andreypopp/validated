@@ -24,7 +24,7 @@ check::
 test:: test-unit test-doc
 
 test-unit::
-	@$(BIN)/mocha $(MOCHA_OPTS) $(TESTS)
+	@$(BIN)/mocha --bail $(MOCHA_OPTS) $(TESTS)
 
 test-doc:: build-silent
 	@$(BIN)/mocha $(MOCHA_OPTS) --compilers md:mocha-doctest ./README.md

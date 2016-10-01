@@ -3,7 +3,7 @@
  * @flow
  */
 
-import type {Node} from './schema';
+import type {Node, ValidateResult} from './schema';
 import type {GenericMessage} from './message';
 
 import {
@@ -25,9 +25,15 @@ class Context extends ContextBase {
     this.value = value;
   }
 
-  buildMapping(validate) {
+  buildMapping<V>(
+    validate: (
+      context: Context,
+      key: string,
+      keyContext: Context
+    ) => ValidateResult<V>
+  ): ValidateResult<{[key: string]: V}> {
     if (!isObject(this.value)) {
-      this.error(`Expected a mapping but got ${typeOf(this.value)}`);
+      throw this.error(`Expected a mapping but got ${typeOf(this.value)}`);
     }
     let keys = Object.keys(this.value);
     let value = {};
@@ -49,9 +55,11 @@ class Context extends ContextBase {
     return {value, context: NULL_CONTEXT};
   }
 
-  buildSequence(validate) {
+  buildSequence<V>(
+    validate: (context: Context) => ValidateResult<V>
+  ): ValidateResult<Array<V>> {
     if (!Array.isArray(this.value)) {
-      this.error(`Expected an array but got ${typeOf(this.value)}`);
+      throw this.error(`Expected an array but got ${typeOf(this.value)}`);
     }
     let value: Array<any> = [];
     for (let i = 0; i < this.value.length; i++) {
@@ -66,7 +74,7 @@ class Context extends ContextBase {
     return {value, context: NULL_CONTEXT};
   }
 
-  unwrap(validate) {
+  unwrap<V>(validate: (value: mixed) => V): ValidateResult<V> {
     let value = validate(this.value);
     return {value, context: NULL_CONTEXT};
   }
@@ -74,7 +82,7 @@ class Context extends ContextBase {
 
 let NULL_CONTEXT = new Context(null);
 
-export function validate(schema: Node, value: any): any {
+export function validate<V>(schema: Node<V>, value: mixed): V {
   let context = new Context(value);
   return schema.validate(context).value;
 }

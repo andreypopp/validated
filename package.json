@@ -37,7 +37,7 @@
     "doctoc": "^1.0.0",
     "eslint": "^2.8.0",
     "eslint-config-prometheusresearch": "^0.2.0",
-    "flow-bin": "^0.24.0",
+    "flow-bin": "^0.33.0",
     "mocha": "^2.4.5",
     "mocha-doctest": "^0.3.4"
   },
