@@ -366,7 +366,7 @@ class Point {
 
 let point = sequence(number).andThen((value, error) => {
   if (value.length !== 2) {
-    error('Expected an array of length 2 but got: ' + value.length)
+    throw error('Expected an array of length 2 but got: ' + value.length)
   }
   return new Point(value[0], value[1])
 })
@@ -409,7 +409,7 @@ class PointNode extends Node {
 
       // just report an error, context information such as line/column
       // numbers will be injected automatically
-      context.error('Expected an array of length 2 but got: ' + value.length)
+      throw context.error('Expected an array of length 2 but got: ' + value.length)
     }
 
     // construct a Point object, do whatever you want here

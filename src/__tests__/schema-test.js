@@ -21,7 +21,7 @@ describe('validated/schema', function() {
 
     let point = sequence(number).andThen((value, error) => {
       if (value.length !== 2) {
-        error('Expected an array of length 2 but got: ' + value.length);
+        throw error('Expected an array of length 2 but got: ' + value.length);
       }
       let [x, y] = value;
       return new Point(x, y);
@@ -89,7 +89,7 @@ describe('validated/schema', function() {
 
           // just report an error, context information such as line/column
           // numbers will be injected automatically
-          context.error('Expected an array of length 2 but got: ' + value.length);
+          throw context.error('Expected an array of length 2 but got: ' + value.length);
         }
 
         // construct a Point object, do whatever you want here
