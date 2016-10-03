@@ -24,6 +24,13 @@
       "mocha": true
     }
   },
+  "files": [
+    "lib/",
+    "json5.js",
+    "object.js",
+    "schema.js",
+    "repr.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andreypopp/validated.git"
