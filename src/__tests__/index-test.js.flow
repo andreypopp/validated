@@ -19,7 +19,7 @@ function testObject() {
   value.x;
 }
 
-function testArray() {
+function testSequence() {
   let schema = s.sequence(s.object({a: s.string}));
   let value = validateJSON5(schema, '');
   let item = value[0];
