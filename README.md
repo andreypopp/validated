@@ -53,7 +53,7 @@ Validate your configurations with precise error messages:
 Schema is defined with validators which are agnostic to the actual
 representation of data, be it a JSON string or an object in memory:
 
-```js+test
+```js
 import {
   mapping, sequence, object, partialObject, oneOf, maybe, enumeration, ref,
   any, string, number, boolean
@@ -62,7 +62,7 @@ import {
 
 There's schema validator for JSON objects in memory:
 
-```js+test
+```js
 import {
   validate as validateObject
 } from 'validated/object'
@@ -70,14 +70,14 @@ import {
 
 And schema validator for strings with JSON/JSON5 encoded data:
 
-```js+test
+```js
 import {
   validate as validateJSON5
 } from 'validated/json5'
 ```
 
 Let's define some schema first:
-```js+test
+```js
 let person = object({
   name: string,
   age: number,
@@ -103,7 +103,7 @@ validateObject(collection, [{name: "John", age: 26}, {nickName: "Tima", age: 3}]
 
 Validates any value but not `undefined` or `null`:
 
-```js+test
+```js
 validateObject(any, 'ok')
 // => 'ok'
 
@@ -120,7 +120,7 @@ validateObject(any, undefined)
 If you want to validated any value and even an absence of one then wrap it in
 `maybe`:
 
-```js+test
+```js
 validateObject(maybe(any), null)
 // => null
 
@@ -132,7 +132,7 @@ validateObject(maybe(any), undefined)
 
 Validate strings, numbers and booleans correspondingly.
 
-```js+test
+```js
 validateObject(string, 'ok')
 // => 'ok'
 
@@ -147,7 +147,7 @@ validateObject(boolean, true)
 
 Validate enumerations:
 
-```js+test
+```js
 validateObject(enumeration('yes', 'no'), 'yes')
 // => 'yes'
 
@@ -164,7 +164,7 @@ Validate mappings from string keys to values.
 
 Untyped values (value validator defaults to `any`):
 
-```js+test
+```js
 validateObject(mapping(), {})
 // => {}
 
@@ -177,7 +177,7 @@ validateObject(mapping(), 'oops')
 
 Typed value:
 
-```js+test
+```js
 validateObject(mapping(number), {a: 1})
 // => { a: 1 }
 
@@ -192,7 +192,7 @@ Validate sequences.
 
 Untyped values (value validator defaults to `any`):
 
-```js+test
+```js
 validateObject(sequence(), [])
 // => []
 
@@ -205,7 +205,7 @@ validateObject(sequence(), 'oops')
 
 Typed value:
 
-```js+test
+```js
 validateObject(sequence(number), [1, 2])
 // => [ 1, 2 ]
 
@@ -218,7 +218,7 @@ validateObject(sequence(number), [1, 2, 'ok'])
 
 Validate objects, objects must specify validator for each of its keys:
 
-```js+test
+```js
 let person = object({
   name: string,
   age: number,
@@ -246,7 +246,7 @@ validateObject(person, {nam: 'john', age: 42})
 
 If some key is optional, wrap its validator in `maybe`:
 
-```js+test
+```js
 let person = object({
   name: string,
   age: number,
@@ -262,7 +262,7 @@ validateObject(person, {name: 'john', age: 27, nickName: 'J'})
 
 You can also specify default values for keys:
 
-```js+test
+```js
 let person = object({
   name: string,
   age: number,
@@ -282,7 +282,7 @@ validateObject(person, {name: 'john', age: 27, nickName: 'J'})
 
 Validate a subset of the keys from the object, passing all extra keys through:
 
-```js+test
+```js
 let person = partialObject({
   name: string,
   age: number,
@@ -300,7 +300,7 @@ validateObject(person, {name: 'john', age: 42, extra: 'ok'})
 Validates `null` and `undefined` but passes through any other value to the
 underlying validator:
 
-```js+test
+```js
 validateObject(maybe(string), null)
 // => null
 
@@ -318,7 +318,7 @@ validateObject(maybe(string), 42)
 
 Tries a multiple validators and choose the one which succeeds first:
 
-```js+test
+```js
 validateObject(oneOf(string, number), 'ok')
 // => 'ok'
 
@@ -338,7 +338,7 @@ validateObject(oneOf(string, number), true)
 
 Allows to define recursive validators:
 
-```js+test
+```js
 let node = ref()
 
 let tree = object({value: any, children: maybe(sequence(node))})
@@ -356,7 +356,7 @@ validateObject(tree, {value: 'ok', children: [{value: 'child'}]})
 
 Example:
 
-```js+test
+```js
 class Point {
 
   constructor(x, y) {
@@ -387,7 +387,7 @@ validateJSON5(point, '[1]')
 
 Example:
 
-```js+test
+```js
 import {Node} from 'validated/schema'
 
 class Point {
