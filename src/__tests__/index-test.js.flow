@@ -11,7 +11,7 @@ function testObject() {
     age: s.number,
   });
 
-  let value = validateJSON5(schema, '');
+  let value = validateJSON5(schema, '{name: "John", age: 27}');
 
   let name: string = value.name;
   let age: number = value.age;
@@ -26,7 +26,7 @@ function testObject() {
 function testSequence() {
   let schema = s.sequence(s.object({a: s.string}));
 
-  let value = validateJSON5(schema, '');
+  let value = validateJSON5(schema, '[{a: "hello"}]');
 
   let item = value[0];
 
@@ -42,7 +42,9 @@ function testSequence() {
 function testOneOf() {
   let schema = s.oneOf(s.string, s.number);
 
-  let value = validateJSON5(schema, '');
+  let value = validateJSON5(schema, '"hello"');
+
+  let hello: string | number = value;
 
   // $ExpectError: expected a string or a number
   let v: boolean = value;
