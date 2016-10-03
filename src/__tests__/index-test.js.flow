@@ -10,40 +10,53 @@ function testObject() {
     name: s.string,
     age: s.number,
   });
+
   let value = validateJSON5(schema, '');
+
   let name: string = value.name;
-  // $ExpectError:
-  let name: number = value.name;
   let age: number = value.age;
-  // $ExpectError:
+
+  // $ExpectError: expected string
+  let name: number = value.name;
+
+  // $ExpectError: unknown prop
   value.x;
 }
 
 function testSequence() {
   let schema = s.sequence(s.object({a: s.string}));
+
   let value = validateJSON5(schema, '');
+
   let item = value[0];
+
   let a: string = item.a;
-  // $ExpectError:
+
+  // $ExpectError: expected a string
   let a: number = item.a;
-  // $ExpectError:
+
+  // $ExpectError: unknown prop
   let b: string = item.b;
 }
 
 function testOneOf() {
   let schema = s.oneOf(s.string, s.number);
+
   let value = validateJSON5(schema, '');
-  // $ExpectError:
+
+  // $ExpectError: expected a string or a number
   let v: boolean = value;
 }
 
 function testRefine() {
-  class A {
+  class A { }
 
-  }
   let schema = s.oneOf(s.string).andThen(_v => new A());
+
   let value = validateJSON5(schema, '');
+
   let v: A = value;
-  // $ExpectError:
+
+  // $ExpectError: expected an A
   let ve: boolean = value;
 }
