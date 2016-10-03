@@ -6,8 +6,12 @@ SRC           = $(filter-out $(TESTS) $(FIXTURES), $(shell find src -name '*.js'
 LIB           = $(SRC:src/%=lib/%)
 MOCHA_OPTS    = -R dot --require babel-core/register
 
-build::
+build: build-lib build-typings
+
+build-lib::
 	@$(MAKE) -j 8 $(LIB)
+
+build-typings: $(SRC:src/%=lib/%.flow)
 
 doctoc:
 	@$(BIN)/doctoc --title '**Table of Contents**' ./README.md
@@ -49,6 +53,16 @@ clean::
 	@rm -rf lib
 
 lib/%.js: src/%.js
-	@echo "Building $<"
+	@echo "Building $@"
 	@mkdir -p $(@D)
 	@$(BIN)/babel $(BABEL_OPTIONS) -o $@ $<
+
+lib/json5.js.flow: src/json5.js.flow
+	@echo "Building $@"
+	@mkdir -p $(@D)
+	@cp $< $@
+
+lib/%.js.flow: src/%.js
+	@echo "Building $@"
+	@mkdir -p $(@D)
+	@cp $< $@
