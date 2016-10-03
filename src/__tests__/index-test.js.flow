@@ -1,0 +1,49 @@
+/**
+ * @flow
+ */
+
+import {validate as validateJSON5} from '../json5';
+import * as s from '../schema';
+
+function testObject() {
+  let schema = s.object({
+    name: s.string,
+    age: s.number,
+  });
+  let value = validateJSON5(schema, '');
+  let name: string = value.name;
+  // $ExpectError:
+  let name: number = value.name;
+  let age: number = value.age;
+  // $ExpectError:
+  value.x;
+}
+
+function testArray() {
+  let schema = s.sequence(s.object({a: s.string}));
+  let value = validateJSON5(schema, '');
+  let item = value[0];
+  let a: string = item.a;
+  // $ExpectError:
+  let a: number = item.a;
+  // $ExpectError:
+  let b: string = item.b;
+}
+
+function testOneOf() {
+  let schema = s.oneOf(s.string, s.number);
+  let value = validateJSON5(schema, '');
+  // $ExpectError:
+  let v: boolean = value;
+}
+
+function testRefine() {
+  class A {
+
+  }
+  let schema = s.oneOf(s.string).andThen(_v => new A());
+  let value = validateJSON5(schema, '');
+  let v: A = value;
+  // $ExpectError:
+  let ve: boolean = value;
+}

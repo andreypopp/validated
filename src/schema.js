@@ -329,7 +329,7 @@ export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
 
-export class MaybeNode<V> extends Node<?V> {
+export class MaybeNode<V> extends Node<$NonMaybeType<V>> {
 
   valueNode: Node<V>;
 
@@ -338,7 +338,7 @@ export class MaybeNode<V> extends Node<?V> {
     this.valueNode = valueNode;
   }
 
-  validate(context: Context): ValidateResult<?V> {
+  validate(context: Context): ValidateResult<$NonMaybeType<V>> {
     return context.unwrap(value => {
       if (value == null) {
         return value;
@@ -411,9 +411,27 @@ export class OneOfNode extends Node {
   }
 }
 
-export function oneOf(...nodes: Array<Node<*>>) {
-  return new OneOfNode(nodes);
+function oneOf_(...nodes) {
+  if (nodes.length === 1) {
+    return nodes[0];
+  }
+  let node = new OneOfNode(nodes);
+  return node;
 }
+
+export let oneOf:
+  (<A, B, C, D, E, F, G, H, I, J, K>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>, j: Node<J>, k: Node<K>) => Node<A | B | C | D | E | F | G | H | I | J | K>)
+  & (<A, B, C, D, E, F, G, H, I, J>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>, j: Node<J>) => Node<A | B | C | D | E | F | G | H | I | J>)
+  & (<A, B, C, D, E, F, G, H, I>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>) => Node<A | B | C | D | E | F | G | H | I>)
+  & (<A, B, C, D, E, F, G, H>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>) => Node<A | B | C | D | E | F | G | H>)
+  & (<A, B, C, D, E, F, G>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>) => Node<A | B | C | D | E | F | G>)
+  & (<A, B, C, D, E, F>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>) => Node<A | B | C | D | E | F>)
+  & (<A, B, C, D, E>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>) => Node<A | B | C | D | E>)
+  & (<A, B, C, D>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>) => Node<A | B | C | D>)
+  & (<A, B, C>(a: Node<A>, b: Node<B>, c: Node<C>) => Node<A | B | C>)
+  & (<A, B>(a: Node<A>, b: Node<B>) => Node<A | B>)
+  & (<A>(a: Node<A>) => Node<A>)
+= (oneOf_: any);
 
 function optimizeOneOfError(errors) {
   let sections = errors.map(error => error.messages);

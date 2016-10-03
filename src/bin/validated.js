@@ -35,7 +35,7 @@ function error(message) {
 }
 
 let schemaSrc = fs.readFileSync(schema, 'utf8');
-let schemaNode: Node<*>;
+let schemaNode;
 try {
   schemaNode = json5.validate(repr.schema, schemaSrc);
 } catch (error) {
