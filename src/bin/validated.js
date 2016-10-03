@@ -4,8 +4,6 @@
  * @flow
  */
 
-import type {Node} from '../schema';
-
 import fs from 'fs';
 import invariant from 'invariant';
 import program from 'commander';
