@@ -7,7 +7,7 @@
     "validated": "./lib/bin/validated.js"
   },
   "scripts": {
-    "test": "make lint check test"
+    "test": "make build lint check test"
   },
   "babel": {
     "presets": [
