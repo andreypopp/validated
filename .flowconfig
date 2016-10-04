@@ -7,6 +7,10 @@
 .*/node_modules/.store/gh-pages@.*/.*
 .*/node_modules/.store/browserify-zlib@.*/_/package.json
 .*/test/.*
+<PROJECT_ROOT>/object\.js
+<PROJECT_ROOT>/json5\.js
+<PROJECT_ROOT>/repr\.js
+<PROJECT_ROOT>/schema\.js
 
 [include]
 
