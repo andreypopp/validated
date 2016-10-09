@@ -188,8 +188,7 @@ export class ConstantNode<V> extends Node<V> {
       if (!this.eq(value, this.value)) {
         throw context.error(`Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`);
       }
-      // $FlowIssue: not a flow issue really, but we need to propagate type info
-      return value;
+      return (value: any);
     });
   }
 }
