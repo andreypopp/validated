@@ -64,8 +64,6 @@ function testRefine() {
 }
 
 function testMaybe() {
-  class A { }
-
   let schema = s.maybe(s.number);
 
   let value = validateJSON5(schema, '');
