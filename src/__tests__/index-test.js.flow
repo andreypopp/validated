@@ -62,3 +62,16 @@ function testRefine() {
   // $ExpectError: expected an A
   let ve: boolean = value;
 }
+
+function testMaybe() {
+  class A { }
+
+  let schema = s.maybe(s.number);
+
+  let value = validateJSON5(schema, '');
+
+  let v: ?number = value;
+
+  // $ExpectError: incompat w/ ?number
+  let v_: number = value;
+}

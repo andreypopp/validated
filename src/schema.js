@@ -328,7 +328,7 @@ export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
 
-export class MaybeNode<V> extends Node<$NonMaybeType<V>> {
+export class MaybeNode<V> extends Node<V | null | void> {
 
   valueNode: Node<V>;
 
@@ -337,7 +337,7 @@ export class MaybeNode<V> extends Node<$NonMaybeType<V>> {
     this.valueNode = valueNode;
   }
 
-  validate(context: Context): ValidateResult<$NonMaybeType<V>> {
+  validate(context: Context): ValidateResult<V | null | void> {
     return context.unwrap(value => {
       if (value == null) {
         return value;
