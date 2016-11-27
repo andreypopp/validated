@@ -1,6 +1,6 @@
 {
   "name": "validated",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "JSON configuration utilities",
   "bin": {
     "validated": "./lib/bin/validated.js"
