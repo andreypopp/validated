@@ -11,6 +11,7 @@
 <PROJECT_ROOT>/json5\.js
 <PROJECT_ROOT>/repr\.js
 <PROJECT_ROOT>/schema\.js
+<PROJECT_ROOT>/lib/schema\.js\.flow
 
 [include]
 

@@ -25,8 +25,8 @@ export type NodeSpec
   | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}}
 
 export type ValidateResult<V> = {
-  context: Context;
-  value: V
+  +context: Context;
+  +value: V
 };
 
 type Refine<A, B> = (

@@ -49,7 +49,7 @@
     "eslint-config-prometheusresearch": "^0.3.0",
     "eslint-plugin-flowtype": "^2.19.0",
     "eslint-plugin-react": "^6.3.0",
-    "flow-bin": "^0.33.0",
+    "flow-bin": "^0.36.0",
     "mocha": "^2.4.5",
     "mocha-doctest": "^0.3.4"
   },
