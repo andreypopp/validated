@@ -5,7 +5,7 @@
 import assert from 'assert';
 import {validate as validateJSON5} from '../json5';
 import {validate as validateObject} from '../object';
-import {Node, sequence, number, object} from '../schema';
+import {Node, arrayOf, number, object} from '../schema';
 
 
 describe('validated/schema', function() {
@@ -19,7 +19,7 @@ describe('validated/schema', function() {
       }
     }
 
-    let point = sequence(number).andThen((value, error) => {
+    let point = arrayOf(number).andThen((value, error) => {
       if (value.length !== 2) {
         throw error('Expected an array of length 2 but got: ' + value.length);
       }
@@ -81,7 +81,7 @@ describe('validated/schema', function() {
 
       validate(context) {
         // prevalidate value with primitive validators
-        let prevalidator = sequence(number);
+        let prevalidator = arrayOf(number);
         let {value, context: nextContext} = prevalidator.validate(context);
 
         // perform additional validations
