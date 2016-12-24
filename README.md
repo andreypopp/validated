@@ -28,7 +28,7 @@ Validate your configurations with precise error messages:
       - [`string`, `number`, `boolean`](#string-number-boolean)
       - [`enumeration`](#enumeration)
       - [`mapping`](#mapping)
-      - [`sequence`](#sequence)
+      - [`arrayOf`](#arrayOf)
       - [`object`](#object)
       - [`partialObject`](#partialobject)
       - [`maybe`](#maybe)
@@ -55,7 +55,7 @@ representation of data, be it a JSON string or an object in memory:
 
 ```js+test
 import {
-  mapping, sequence, object, partialObject, oneOf, maybe, enumeration, ref,
+  mapping, arrayOf, object, partialObject, oneOf, maybe, enumeration, ref,
   any, string, number, boolean
 } from 'validated/schema'
 ```
@@ -88,7 +88,7 @@ let pet = object({
   age: number,
 })
 
-let collection = sequence(oneOf(person, pet))
+let collection = arrayOf(oneOf(person, pet))
 
 validateJSON5(collection, '[{name: "John", age: 26}, {nickName: "Tima", age: 3}]')
 // => [ { name: 'John', age: 26 }, { nickName: 'Tima', age: 3 } ]
@@ -186,30 +186,30 @@ validateObject(mapping(number), {a: 1, b: 'ok'})
 // While validating value at key "b"
 ```
 
-##### `sequence`
+##### `arrayOf`
 
-Validate sequences.
+Validate arrays.
 
 Untyped values (value validator defaults to `any`):
 
 ```js+test
-validateObject(sequence(), [])
+validateObject(arrayOf(any), [])
 // => []
 
-validateObject(sequence(), [1, 2, 'ok'])
+validateObject(arrayOf(any), [1, 2, 'ok'])
 // => [ 1, 2, 'ok' ]
 
-validateObject(sequence(), 'oops')
+validateObject(arrayOf(any), 'oops')
 // ValidationError: Expected an array but got string
 ```
 
 Typed value:
 
 ```js+test
-validateObject(sequence(number), [1, 2])
+validateObject(arrayOf(number), [1, 2])
 // => [ 1, 2 ]
 
-validateObject(sequence(number), [1, 2, 'ok'])
+validateObject(arrayOf(number), [1, 2, 'ok'])
 // ValidationError: Expected value of type number but got string
 // While validating value at index 2
 ```
@@ -341,7 +341,7 @@ Allows to define recursive validators:
 ```js+test
 let node = ref()
 
-let tree = object({value: any, children: maybe(sequence(node))})
+let tree = object({value: any, children: maybe(arrayOf(node))})
 
 node.set(tree)
 
@@ -365,7 +365,7 @@ class Point {
   }
 }
 
-let point = sequence(number).andThen((value, error) => {
+let point = arrayOf(number).andThen((value, error) => {
   if (value.length !== 2) {
     throw error('Expected an array of length 2 but got: ' + value.length)
   }
@@ -402,7 +402,7 @@ class PointNode extends Node {
 
   validate(context) {
     // prevalidate value with primitive validators
-    let prevalidator = sequence(number)
+    let prevalidator = arrayOf(number)
     let {value, context: nextContext} = prevalidator.validate(context)
 
     // perform additional validations

@@ -324,6 +324,11 @@ export class SequenceNode<V> extends Node<Array<V>> {
   }
 }
 
+export function arrayOf<V>(valueNode: Node<V> = any): SequenceNode<V> {
+  return new SequenceNode(valueNode);
+}
+
+// Kept for backwards compatibility. Use `arrayOf` instead.
 export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
