@@ -28,7 +28,7 @@ Validate your configurations with precise error messages:
       - [`string`, `number`, `boolean`](#string-number-boolean)
       - [`enumeration`](#enumeration)
       - [`mapping`](#mapping)
-      - [`arrayOf`](#arrayOf)
+      - [`arrayOf`](#arrayof)
       - [`object`](#object)
       - [`partialObject`](#partialobject)
       - [`maybe`](#maybe)
