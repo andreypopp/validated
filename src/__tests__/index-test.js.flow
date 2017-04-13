@@ -5,7 +5,7 @@
 import {validate as validateJSON5} from '../json5';
 import * as s from '../schema';
 
-function testObject() {
+export function testObject() {
   let schema = s.object({
     name: s.string,
     age: s.number,
@@ -23,7 +23,7 @@ function testObject() {
   value.x;
 }
 
-function testSequence() {
+export function testSequence() {
   let schema = s.sequence(s.object({a: s.string}));
 
   let value = validateJSON5(schema, '[{a: "hello"}]');
@@ -39,7 +39,7 @@ function testSequence() {
   let b: string = item.b;
 }
 
-function testOneOf() {
+export function testOneOf() {
   let schema = s.oneOf(s.string, s.number);
 
   let value = validateJSON5(schema, '"hello"');
@@ -50,7 +50,7 @@ function testOneOf() {
   let v: boolean = value;
 }
 
-function testRefine() {
+export function testRefine() {
   class A { }
 
   let schema = s.oneOf(s.string).andThen(_v => new A());
@@ -63,7 +63,7 @@ function testRefine() {
   let ve: boolean = value;
 }
 
-function testMaybe() {
+export function testMaybe() {
   let schema = s.maybe(s.number);
 
   let value = validateJSON5(schema, '');
@@ -72,4 +72,31 @@ function testMaybe() {
 
   // $ExpectError: incompat w/ ?number
   let v_: number = value;
+}
+
+export function testRecur() {
+
+  let person = s.recur(person =>
+    s.object({
+      name: s.string,
+      age: s.number,
+      friends: s.arrayOf(person),
+    })
+  );
+
+  type Person = {
+    name: string,
+    age: number,
+    friends: Person[],
+  };
+
+  let x = validateJSON5(person, '');
+
+  (x: Person);
+  (x.name: string);
+  (x.age: number);
+  (x.friends: Person[]);
+
+  // $ExpectError: oops
+  x.oops;
 }
