@@ -4,49 +4,46 @@
  */
 
 import {
-  ref, oneOf, enumeration, object, partialObject, sequence, mapping,
+  recur, oneOf, enumeration, object, partialObject, sequence, mapping,
   string, number, boolean, maybe, any, constant
 } from './schema';
 
-let schemaSchemaSelf = ref();
-let schemaSchema = oneOf(
+export let schema = recur(schema =>
+  oneOf(
+    constant('string').andThen(_ => string),
+    constant('number').andThen(_ => number),
+    constant('boolean').andThen(_ => boolean),
+    constant('any').andThen(_ => any),
 
-  constant('string').andThen(_ => string),
-  constant('number').andThen(_ => number),
-  constant('boolean').andThen(_ => boolean),
-  constant('any').andThen(_ => any),
+    object({
+      enumeration: sequence(any)
+    }).andThen(obj => enumeration(obj.enumeration)),
 
-  object({
-    enumeration: sequence(any)
-  }).andThen(obj => enumeration(obj.enumeration)),
+    object({
+      constant: any
+    }).andThen(obj => constant(obj.constant)),
 
-  object({
-    constant: any
-  }).andThen(obj => constant(obj.constant)),
+    object({
+      maybe: schema
+    }).andThen(obj => maybe(obj.maybe)),
 
-  object({
-    maybe: schemaSchemaSelf
-  }).andThen(obj => maybe(obj.maybe)),
+    object({
+      mapping: schema
+    }).andThen(obj => mapping(obj.mapping)),
 
-  object({
-    mapping: schemaSchemaSelf
-  }).andThen(obj => mapping(obj.mapping)),
+    object({
+      sequence: schema
+    }).andThen(obj => sequence(obj.sequence)),
 
-  object({
-    sequence: schemaSchemaSelf
-  }).andThen(obj => sequence(obj.sequence)),
+    object({
+      object: mapping(schema),
+      defaults: maybe(any)
+    }).andThen(obj => object(obj.object, obj.defaults)),
 
-  object({
-    object: mapping(schemaSchemaSelf),
-    defaults: maybe(any)
-  }).andThen(obj => object(obj.object, obj.defaults)),
+    object({
+      partialObject: mapping(schema),
+      defaults: maybe(any)
+    }).andThen(obj => partialObject(obj.partialObject, obj.defaults)),
 
-  object({
-    partialObject: mapping(schemaSchemaSelf),
-    defaults: maybe(any)
-  }).andThen(obj => partialObject(obj.partialObject, obj.defaults)),
-
+  )
 );
-
-export let schema = schemaSchema;
-schemaSchemaSelf.set(schemaSchema);

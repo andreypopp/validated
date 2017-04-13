@@ -558,31 +558,22 @@ export class BooleanNode extends Node<boolean> {
 
 export let boolean = new BooleanNode();
 
-export class RefNode<V> extends Node<V> {
+export class RecursiveNode<V> extends Node<V> {
 
-  node: ?Node<V>;
+  node: Node<V>;
 
-  constructor() {
+  constructor(thunk: (node: Node<V>) => Node<V>) {
     super();
-    this.node = null;
+    this.node = thunk(this);
   }
 
   validate(context: Context): ValidateResult<V> {
-    invariant(
-      this.node != null,
-      'Trying to validate with an unitialized ref'
-    );
     return this.node.validate(context);
-  }
-
-  set(node: Node<V>): void {
-    this.node = node;
   }
 }
 
-export function ref() {
-  let node: RefNode<*> = new RefNode();
-  return node;
+export function recur<V>(thunk: (node: Node<V>) => Node<V>): Node<V> {
+  return new RecursiveNode(thunk);
 }
 
 function explode(variations, rest) {

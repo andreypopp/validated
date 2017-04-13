@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
  * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
- * @flow
  */
 
 import fs from 'fs';
@@ -49,7 +48,7 @@ try {
 invariant(schemaNode != null, 'Impossible');
 
 let configSrc = fs.readFileSync(config, 'utf8');
-let configValidated;
+let configValidated: any = undefined;
 try {
   configValidated = json5.validate(schemaNode, configSrc);
 } catch (error) {

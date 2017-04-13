@@ -33,7 +33,7 @@ Validate your configurations with precise error messages:
       - [`partialObject`](#partialobject)
       - [`maybe`](#maybe)
       - [`oneOf`](#oneof)
-      - [`ref`](#ref)
+      - [`recur`](#recur)
   - [Refining validations](#refining-validations)
   - [Defining new schema types](#defining-new-schema-types)
   - [Integration with FlowType](#integration-with-flowtype)
@@ -55,7 +55,7 @@ representation of data, be it a JSON string or an object in memory:
 
 ```js+test
 import {
-  mapping, arrayOf, object, partialObject, oneOf, maybe, enumeration, ref,
+  mapping, arrayOf, object, partialObject, oneOf, maybe, enumeration, recur,
   any, string, number, boolean
 } from 'validated/schema'
 ```
@@ -334,16 +334,17 @@ validateObject(oneOf(string, number), true)
 //
 ```
 
-##### `ref`
+##### `recur`
 
 Allows to define recursive validators:
 
 ```js+test
-let node = ref()
-
-let tree = object({value: any, children: maybe(arrayOf(node))})
-
-node.set(tree)
+let tree = recur(tree =>
+  object({
+    value: any,
+    children: maybe(arrayOf(tree))
+  })
+)
 
 validateObject(tree, {value: 'ok'})
 // => { value: 'ok' }
