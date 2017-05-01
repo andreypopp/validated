@@ -11,7 +11,7 @@ import invariant from 'invariant';
 import {typeOf} from './utils';
 import CustomError from 'custom-error-instance';
 import levenshtein from 'levenshtein-edit-distance';
-import {flatten, sortBy} from 'lodash';
+import {flatten} from 'lodash';
 import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec
@@ -287,7 +287,10 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
       distance: levenshtein(suggestion, key),
       suggestion
     }));
-    let suggestion = sortBy(suggestions, suggestion => suggestion.distance)[0];
+    function compareSuggestions(a, b) {
+      return a.distance - b.distance;
+    }
+    let suggestion = suggestions.sort(compareSuggestions)[0];
     if (suggestion.distance === key.length) {
       return null;
     } else {
