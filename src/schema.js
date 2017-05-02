@@ -8,10 +8,9 @@
 import type {GenericMessage} from './message';
 
 import invariant from 'invariant';
-import {typeOf} from './utils';
+import {typeOf, flatten} from './utils';
 import CustomError from 'custom-error-instance';
 import levenshtein from 'levenshtein-edit-distance';
-import {flatten} from 'lodash';
 import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec
