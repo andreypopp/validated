@@ -8,10 +8,9 @@
 import type {GenericMessage} from './message';
 
 import invariant from 'invariant';
-import {typeOf} from './utils';
+import {typeOf, flatten} from './utils';
 import CustomError from 'custom-error-instance';
 import levenshtein from 'levenshtein-edit-distance';
-import {flatten, sortBy} from 'lodash';
 import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec
@@ -282,12 +281,16 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
     return {...res, value};
   }
 
+  _compareSuggestions(a: {distance: number}, b: {distance: number}): number {
+    return a.distance - b.distance;
+  }
+
   _guessSuggestion(key: string): ?string {
     let suggestions = this.valuesKeys.map(suggestion => ({
       distance: levenshtein(suggestion, key),
       suggestion
     }));
-    let suggestion = sortBy(suggestions, suggestion => suggestion.distance)[0];
+    let suggestion = suggestions.sort(this._compareSuggestions)[0];
     if (suggestion.distance === key.length) {
       return null;
     } else {

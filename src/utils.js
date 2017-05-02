@@ -21,3 +21,10 @@ export function isObject(obj: any): boolean {
   );
 }
 
+export function flatten(array: any): any {
+  let result = [];
+  for (let i = 0; i < array.length; i++) {
+    result = result.concat(array[i]);
+  }
+  return result
+}
