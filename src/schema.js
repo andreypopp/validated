@@ -387,7 +387,7 @@ export function enumeration(...values: Array<mixed>) {
   return node;
 }
 
-export class OneOfNode<A> extends Node<A> {
+export class OneOfNode<V> extends Node<V> {
 
   nodes: Array<Node<*>>;
 
