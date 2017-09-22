@@ -11,7 +11,6 @@ const NEWLINE = '\n';
 const INDENT = '  ';
 
 export class Message {
-
   message: ?string;
   children: Array<GenericMessage>;
 
@@ -32,7 +31,6 @@ export class Message {
 }
 
 export class AlternativeMessage extends Message {
-
   alternatives: Array<GenericMessage>;
 
   static DESCRIPTION = 'Either:';
@@ -48,7 +46,10 @@ export class AlternativeMessage extends Message {
   }
 }
 
-export function message(message: ?string, children: GenericMessage | Array<GenericMessage> = []) {
+export function message(
+  message: ?string,
+  children: GenericMessage | Array<GenericMessage> = [],
+) {
   if (!Array.isArray(children)) {
     children = [children];
   }

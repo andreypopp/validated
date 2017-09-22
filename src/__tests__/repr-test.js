@@ -9,7 +9,6 @@ import {validate as validateObject} from '../object';
 import {validate as validateJSON5} from '../json5';
 
 describe('validated/repr', function() {
-
   it('has object repr', function() {
     let repr = {maybe: 'any'};
     let sch = validateObject(schema, repr);
@@ -23,5 +22,4 @@ describe('validated/repr', function() {
     assert(sch instanceof MaybeNode);
     assert(sch.valueNode instanceof AnyNode);
   });
-
 });

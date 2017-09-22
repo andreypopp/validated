@@ -14,11 +14,7 @@ export function typeOf(value: any): string {
 }
 
 export function isObject(obj: any): boolean {
-  return (
-    obj != null &&
-    typeof obj === 'object' &&
-    !Array.isArray(obj)
-  );
+  return obj != null && typeof obj === 'object' && !Array.isArray(obj);
 }
 
 export function flatten(array: any): any {

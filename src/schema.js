@@ -13,28 +13,24 @@ import CustomError from 'custom-error-instance';
 import levenshtein from 'levenshtein-edit-distance';
 import {Message, AlternativeMessage, message} from './message';
 
-export type NodeSpec
-  = {type: 'boolean'}
+export type NodeSpec =
+  | {type: 'boolean'}
   | {type: 'string'}
   | {type: 'number'}
   | {type: 'any'}
   | {type: 'maybe', value: NodeSpec}
   | {type: 'mapping', value: NodeSpec}
   | {type: 'sequence', value: NodeSpec}
-  | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}}
+  | {type: 'object', values: {[key: string]: NodeSpec}, defaults: {[key: string]: any}};
 
 export type ValidateResult<V> = {
-  +context: Context;
-  +value: V
+  +context: Context,
+  +value: V,
 };
 
-type Refine<A, B> = (
-  value: A,
-  error: (message: GenericMessage) => void
-) => B;
+type Refine<A, B> = (value: A, error: (message: GenericMessage) => void) => B;
 
 export class Context {
-
   parent: ?Context;
   message: ?GenericMessage;
 
@@ -47,14 +43,14 @@ export class Context {
     _validateValue: (
       context: Context,
       key: string,
-      keyContext: Context
-    ) => ValidateResult<V>
+      keyContext: Context,
+    ) => ValidateResult<V>,
   ): ValidateResult<{[key: string]: V}> {
     throw new Error('not implemented');
   }
 
   buildSequence<V>(
-    _validateValue: (context: Context) => ValidateResult<V>
+    _validateValue: (context: Context) => ValidateResult<V>,
   ): ValidateResult<Array<V>> {
     throw new Error('not implemented');
   }
@@ -63,7 +59,10 @@ export class Context {
     throw new Error('not implemented');
   }
 
-  buildMessage(originalMessage: ?GenericMessage, _contextMessages: Array<GenericMessage>) {
+  buildMessage(
+    originalMessage: ?GenericMessage,
+    _contextMessages: Array<GenericMessage>,
+  ) {
     return originalMessage;
   }
 
@@ -82,7 +81,6 @@ export class Context {
 }
 
 class NullContext extends Context {
-
   buildMapping(_validateValue) {
     throw this.error('Expected a mapping value but got undefined');
   }
@@ -114,19 +112,21 @@ ValidationError.prototype.toString = function() {
 ValidationError.prototype.withContext = function(...messages) {
   let error = validationError(
     this.originalMessage,
-    this.contextMessages.concat(...messages)
+    this.contextMessages.concat(...messages),
   );
   return error;
 };
 
-export function validationError(originalMessage: ?GenericMessage, contextMessages: Array<GenericMessage>) {
+export function validationError(
+  originalMessage: ?GenericMessage,
+  contextMessages: Array<GenericMessage>,
+) {
   let messages = [originalMessage].concat(contextMessages);
   let message = messages.join('\n');
   return new ValidationError({message, messages, originalMessage, contextMessages});
 }
 
 export class Node<V> {
-
   validate(_context: Context): ValidateResult<V> {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
@@ -139,7 +139,6 @@ export class Node<V> {
 }
 
 export class RefineNode<V, RV> extends Node<RV> {
-
   validator: Node<V>;
   refine: Refine<V, RV>;
 
@@ -157,7 +156,6 @@ export class RefineNode<V, RV> extends Node<RV> {
 }
 
 export class AnyNode<V: mixed> extends Node<$NonMaybeType<V>> {
-
   validate(context: Context): ValidateResult<$NonMaybeType<V>> {
     return context.unwrap(value => {
       if (value == null) {
@@ -172,7 +170,6 @@ export class AnyNode<V: mixed> extends Node<$NonMaybeType<V>> {
 export let any: AnyNode<*> = new AnyNode();
 
 export class ConstantNode<V> extends Node<V> {
-
   value: V;
   eq: (v1: mixed, v2: mixed) => boolean;
 
@@ -185,7 +182,9 @@ export class ConstantNode<V> extends Node<V> {
   validate(context: Context): ValidateResult<V> {
     return context.unwrap(value => {
       if (!this.eq(value, this.value)) {
-        throw context.error(`Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`);
+        throw context.error(
+          `Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`,
+        );
       }
       return (value: any);
     });
@@ -194,15 +193,14 @@ export class ConstantNode<V> extends Node<V> {
 
 export function constant<V>(
   value: V,
-  eq: (v1: mixed, v2: mixed) => boolean = (v1, v2) => v1 === v2
+  eq: (v1: mixed, v2: mixed) => boolean = (v1, v2) => v1 === v2,
 ): ConstantNode<V> {
   return new ConstantNode(value, eq);
 }
 
-type MappingOf<V> = {[key: string]: V}
+type MappingOf<V> = {[key: string]: V};
 
 export class MappingNode<V> extends Node<MappingOf<V>> {
-
   valueNode: Node<V>;
 
   constructor(valueNode: Node<V>) {
@@ -220,22 +218,20 @@ export function mapping<V>(valueNode?: Node<V> = any): MappingNode<V> {
 }
 
 type ObjectNodeOptions = {
-  allowExtra: boolean;
+  allowExtra: boolean,
 };
 
-export class ObjectNode<S: {[name: string]: Node<*>}>
-  extends Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
+export class ObjectNode<S: {[name: string]: Node<*>}> extends Node<
+  $ObjMap<S, <V>(v: Node<V>) => V>,
+> {
+  // eslint-disable-line no-undef
 
   values: S;
   valuesKeys: Array<string>;
   defaults: Object;
   options: ObjectNodeOptions;
 
-  constructor(
-    values: S,
-    defaults: ?Object = {},
-    options: ObjectNodeOptions
-  ) {
+  constructor(values: S, defaults: ?Object = {}, options: ObjectNodeOptions) {
     super();
     this.values = values;
     this.valuesKeys = Object.keys(values);
@@ -243,13 +239,16 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
     this.options = options;
   }
 
-  validate(context: Context): $ObjMap<S, <V>(v: Node<V>) => V> { // eslint-disable-line no-undef
+  validate(context: Context): $ObjMap<S, <V>(v: Node<V>) => V> {
+    // eslint-disable-line no-undef
     let res = context.buildMapping((valueContext, key, keyContext) => {
       if (this.values[key] == undefined) {
         if (!this.options.allowExtra) {
           let suggestion = this._guessSuggestion(key);
           if (suggestion) {
-            throw keyContext.error(`Unexpected key: "${key}", did you mean "${suggestion}"?`);
+            throw keyContext.error(
+              `Unexpected key: "${key}", did you mean "${suggestion}"?`,
+            );
           } else {
             throw keyContext.error(`Unexpected key: "${key}"`);
           }
@@ -288,7 +287,7 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
   _guessSuggestion(key: string): ?string {
     let suggestions = this.valuesKeys.map(suggestion => ({
       distance: levenshtein(suggestion, key),
-      suggestion
+      suggestion,
     }));
     let suggestion = suggestions.sort(this._compareSuggestions)[0];
     if (suggestion.distance === key.length) {
@@ -301,20 +300,21 @@ export class ObjectNode<S: {[name: string]: Node<*>}>
 
 export function object<S: {[name: string]: Node<*>}>(
   values: S,
-  defaults: ?Object
-): Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
+  defaults: ?Object,
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
+  // eslint-disable-line no-undef
   return new ObjectNode(values, defaults, {allowExtra: false});
 }
 
 export function partialObject<S: {[name: string]: Node<*>}>(
   values: S,
-  defaults: ?Object
-): Node<$ObjMap<S, <V>(v: Node<V>) => V>> { // eslint-disable-line no-undef
+  defaults: ?Object,
+): Node<$ObjMap<S, <V>(v: Node<V>) => V>> {
+  // eslint-disable-line no-undef
   return new ObjectNode(values, defaults, {allowExtra: true});
 }
 
 export class SequenceNode<V> extends Node<Array<V>> {
-
   valueNode: Node<V>;
 
   constructor(valueNode: Node<V> = any) {
@@ -337,7 +337,6 @@ export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
 }
 
 export class MaybeNode<V> extends Node<V | null | void> {
-
   valueNode: Node<V>;
 
   constructor(valueNode: Node<V>) {
@@ -360,7 +359,6 @@ export function maybe<V>(valueNode: Node<V>): MaybeNode<V> {
 }
 
 export class EnumerationNode<V> extends Node<mixed> {
-
   values: Array<V>;
 
   constructor(values: Array<V>) {
@@ -388,7 +386,6 @@ export function enumeration(...values: Array<mixed>) {
 }
 
 export class OneOfNode<V> extends Node<V> {
-
   nodes: Array<Node<*>>;
 
   constructor(nodes: Array<Node<*>>) {
@@ -410,10 +407,7 @@ export class OneOfNode<V> extends Node<V> {
         }
       }
     }
-    invariant(
-      errors.length > 0,
-      'Impossible happened'
-    );
+    invariant(errors.length > 0, 'Impossible happened');
     throw optimizeOneOfError(errors);
   }
 }
@@ -426,19 +420,80 @@ function oneOf_(...nodes) {
   return node;
 }
 
-export let oneOf:
-  (<A, B, C, D, E, F, G, H, I, J, K>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>, j: Node<J>, k: Node<K>) => Node<A | B | C | D | E | F | G | H | I | J | K>)
-  & (<A, B, C, D, E, F, G, H, I, J>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>, j: Node<J>) => Node<A | B | C | D | E | F | G | H | I | J>)
-  & (<A, B, C, D, E, F, G, H, I>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>, i: Node<I>) => Node<A | B | C | D | E | F | G | H | I>)
-  & (<A, B, C, D, E, F, G, H>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>, h: Node<H>) => Node<A | B | C | D | E | F | G | H>)
-  & (<A, B, C, D, E, F, G>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>, g: Node<G>) => Node<A | B | C | D | E | F | G>)
-  & (<A, B, C, D, E, F>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>, f: Node<F>) => Node<A | B | C | D | E | F>)
-  & (<A, B, C, D, E>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>, e: Node<E>) => Node<A | B | C | D | E>)
-  & (<A, B, C, D>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>) => Node<A | B | C | D>)
-  & (<A, B, C>(a: Node<A>, b: Node<B>, c: Node<C>) => Node<A | B | C>)
-  & (<A, B>(a: Node<A>, b: Node<B>) => Node<A | B>)
-  & (<A>(a: Node<A>) => Node<A>)
-= (oneOf_: any);
+export let oneOf: (<A, B, C, D, E, F, G, H, I, J, K>(
+  a: Node<A>,
+  b: Node<B>,
+  c: Node<C>,
+  d: Node<D>,
+  e: Node<E>,
+  f: Node<F>,
+  g: Node<G>,
+  h: Node<H>,
+  i: Node<I>,
+  j: Node<J>,
+  k: Node<K>,
+) => Node<A | B | C | D | E | F | G | H | I | J | K>) &
+  (<A, B, C, D, E, F, G, H, I, J>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+    f: Node<F>,
+    g: Node<G>,
+    h: Node<H>,
+    i: Node<I>,
+    j: Node<J>,
+  ) => Node<A | B | C | D | E | F | G | H | I | J>) &
+  (<A, B, C, D, E, F, G, H, I>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+    f: Node<F>,
+    g: Node<G>,
+    h: Node<H>,
+    i: Node<I>,
+  ) => Node<A | B | C | D | E | F | G | H | I>) &
+  (<A, B, C, D, E, F, G, H>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+    f: Node<F>,
+    g: Node<G>,
+    h: Node<H>,
+  ) => Node<A | B | C | D | E | F | G | H>) &
+  (<A, B, C, D, E, F, G>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+    f: Node<F>,
+    g: Node<G>,
+  ) => Node<A | B | C | D | E | F | G>) &
+  (<A, B, C, D, E, F>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+    f: Node<F>,
+  ) => Node<A | B | C | D | E | F>) &
+  (<A, B, C, D, E>(
+    a: Node<A>,
+    b: Node<B>,
+    c: Node<C>,
+    d: Node<D>,
+    e: Node<E>,
+  ) => Node<A | B | C | D | E>) &
+  (<A, B, C, D>(a: Node<A>, b: Node<B>, c: Node<C>, d: Node<D>) => Node<A | B | C | D>) &
+  (<A, B, C>(a: Node<A>, b: Node<B>, c: Node<C>) => Node<A | B | C>) &
+  (<A, B>(a: Node<A>, b: Node<B>) => Node<A | B>) &
+  (<A>(a: Node<A>) => Node<A>) = (oneOf_: any);
 
 function optimizeOneOfError(errors) {
   let sections = errors.map(error => error.messages);
@@ -478,12 +533,11 @@ function optimizeOneOfError(errors) {
     i++;
   }
 
-  sections = sections
-    .map(lines => {
-      lines = lines.slice(same.length);
-      lines.reverse();
-      return message(null, lines);
-    });
+  sections = sections.map(lines => {
+    lines = lines.slice(same.length);
+    lines.reverse();
+    return message(null, lines);
+  });
 
   // Collect alternatives
   let alternatives = [];
@@ -501,7 +555,7 @@ function sameMessage(a, b) {
     return true;
   } else if (a instanceof Message) {
     return (
-      (b instanceof Message) &&
+      b instanceof Message &&
       sameMessage(a.message, b.message) &&
       a.children.length === b.children.length &&
       a.children.every((child, idx) => sameMessage(child, b.children[idx]))
@@ -520,7 +574,6 @@ function weightMessage(msg) {
 }
 
 export class StringNode extends Node<string> {
-
   validate(context: Context): ValidateResult<string> {
     return context.unwrap(value => {
       if (typeof value !== 'string') {
@@ -534,7 +587,6 @@ export class StringNode extends Node<string> {
 export let string = new StringNode();
 
 export class NumberNode extends Node<number> {
-
   validate(context: Context): ValidateResult<number> {
     return context.unwrap(value => {
       if (typeof value !== 'number') {
@@ -548,7 +600,6 @@ export class NumberNode extends Node<number> {
 export let number = new NumberNode();
 
 export class BooleanNode extends Node<boolean> {
-
   validate(context: Context): ValidateResult<boolean> {
     return context.unwrap(value => {
       if (typeof value !== 'boolean') {
@@ -562,7 +613,6 @@ export class BooleanNode extends Node<boolean> {
 export let boolean = new BooleanNode();
 
 export class RecursiveNode<V> extends Node<V> {
-
   node: Node<V>;
 
   constructor(thunk: (node: Node<V>) => Node<V>) {

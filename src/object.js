@@ -6,16 +6,10 @@
 import type {Node, ValidateResult} from './schema';
 import type {GenericMessage} from './message';
 
-import {
-  Context as ContextBase
-} from './schema';
-import {
-  typeOf,
-  isObject
-} from './utils';
+import {Context as ContextBase} from './schema';
+import {typeOf, isObject} from './utils';
 
 class Context extends ContextBase {
-
   value: any;
   message: ?GenericMessage;
   parent: ?ContextBase;
@@ -26,11 +20,7 @@ class Context extends ContextBase {
   }
 
   buildMapping<V>(
-    validate: (
-      context: Context,
-      key: string,
-      keyContext: Context
-    ) => ValidateResult<V>
+    validate: (context: Context, key: string, keyContext: Context) => ValidateResult<V>,
   ): ValidateResult<{[key: string]: V}> {
     if (!isObject(this.value)) {
       throw this.error(`Expected a mapping but got ${typeOf(this.value)}`);
@@ -42,13 +32,9 @@ class Context extends ContextBase {
       let valueContext = new Context(
         this.value[key],
         `While validating value at key "${key}"`,
-        this
+        this,
       );
-      let keyContext = new Context(
-        key,
-      `While validating key "${key}"`,
-        this
-      );
+      let keyContext = new Context(key, `While validating key "${key}"`, this);
       let res = validate(valueContext, key, keyContext);
       value[key] = res.value;
     }
@@ -56,7 +42,7 @@ class Context extends ContextBase {
   }
 
   buildSequence<V>(
-    validate: (context: Context) => ValidateResult<V>
+    validate: (context: Context) => ValidateResult<V>,
   ): ValidateResult<Array<V>> {
     if (!Array.isArray(this.value)) {
       throw this.error(`Expected an array but got ${typeOf(this.value)}`);
@@ -66,7 +52,7 @@ class Context extends ContextBase {
       let context = new Context(
         this.value[i],
         `While validating value at index ${i}`,
-        this
+        this,
       );
       let res = validate(context);
       value[i] = res.value;

@@ -7,12 +7,9 @@ import {validate as validateJSON5} from '../json5';
 import {validate as validateObject} from '../object';
 import {Node, arrayOf, number, object} from '../schema';
 
-
 describe('validated/schema', function() {
-
   describe('refine', function() {
     class Point {
-
       constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -37,10 +34,13 @@ describe('validated/schema', function() {
       try {
         validateObject(schema, {point: [1, 2, 3]});
       } catch (err) {
-        assert.equal(err.message, [
-          'Expected an array of length 2 but got: 3',
-          'While validating value at key "point"',
-        ].join('\n'));
+        assert.equal(
+          err.message,
+          [
+            'Expected an array of length 2 but got: 3',
+            'While validating value at key "point"',
+          ].join('\n'),
+        );
         return;
       }
       assert(false, 'Missing exception');
@@ -56,21 +56,21 @@ describe('validated/schema', function() {
       try {
         validateJSON5(schema, '{point: [1, 2, 3]}');
       } catch (err) {
-        assert.equal(err.message, [
-          'Expected an array of length 2 but got: 3',
-          'While validating value at key "point" (line 1 column 9)',
-        ].join('\n'));
+        assert.equal(
+          err.message,
+          [
+            'Expected an array of length 2 but got: 3',
+            'While validating value at key "point" (line 1 column 9)',
+          ].join('\n'),
+        );
         return;
       }
       assert(false, 'Missing exception');
     });
-
   });
 
   describe('defining custom schema types', function() {
-
     class Point {
-
       constructor(x, y) {
         this.x = x;
         this.y = y;
@@ -78,7 +78,6 @@ describe('validated/schema', function() {
     }
 
     class PointNode extends Node {
-
       validate(context) {
         // prevalidate value with primitive validators
         let prevalidator = arrayOf(number);
@@ -86,7 +85,6 @@ describe('validated/schema', function() {
 
         // perform additional validations
         if (value.length !== 2) {
-
           // just report an error, context information such as line/column
           // numbers will be injected automatically
           throw context.error('Expected an array of length 2 but got: ' + value.length);
@@ -111,10 +109,13 @@ describe('validated/schema', function() {
       try {
         validateObject(schema, {point: [1, 2, 3]});
       } catch (err) {
-        assert.equal(err.message, [
-          'Expected an array of length 2 but got: 3',
-          'While validating value at key "point"',
-        ].join('\n'));
+        assert.equal(
+          err.message,
+          [
+            'Expected an array of length 2 but got: 3',
+            'While validating value at key "point"',
+          ].join('\n'),
+        );
         return;
       }
       assert(false, 'Missing exception');
@@ -130,14 +131,16 @@ describe('validated/schema', function() {
       try {
         validateJSON5(schema, '{point: [1, 2, 3]}');
       } catch (err) {
-        assert.equal(err.message, [
-          'Expected an array of length 2 but got: 3',
-          'While validating value at key "point" (line 1 column 9)',
-        ].join('\n'));
+        assert.equal(
+          err.message,
+          [
+            'Expected an array of length 2 but got: 3',
+            'While validating value at key "point" (line 1 column 9)',
+          ].join('\n'),
+        );
         return;
       }
       assert(false, 'Missing exception');
     });
-
   });
 });
