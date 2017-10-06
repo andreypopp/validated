@@ -66,7 +66,7 @@ export class Context {
     return originalMessage;
   }
 
-  error(inMessage: ?GenericMessage) {
+  error(inMessage: ?GenericMessage): ValidationError {
     let context = this;
     let contextMessages = [];
     do {
