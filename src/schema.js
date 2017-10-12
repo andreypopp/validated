@@ -127,6 +127,8 @@ export function validationError(
 }
 
 export class Node<V> {
+  type: V;
+
   validate(_context: Context): ValidateResult<V> {
     let message = `${this.constructor.name}.validate(context) is not implemented`;
     throw new Error(message);
