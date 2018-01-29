@@ -5,13 +5,13 @@
  * @flow
  */
 
-import type {GenericMessage} from './message';
+import {AlternativeMessage, Message, message} from './message';
+import {flatten, typeOf} from './utils';
 
-import invariant from 'invariant';
-import {typeOf, flatten} from './utils';
 import CustomError from 'custom-error-instance';
+import type {GenericMessage} from './message';
+import invariant from 'invariant';
 import levenshtein from 'levenshtein-edit-distance';
-import {Message, AlternativeMessage, message} from './message';
 
 export type NodeSpec =
   | {type: 'boolean'}
@@ -66,7 +66,7 @@ export class Context {
     return originalMessage;
   }
 
-  error(originalMessage: ?GenericMessage) {
+  error(inMessage: ?GenericMessage) {
     let context = this;
     let contextMessages = [];
     do {
@@ -75,7 +75,7 @@ export class Context {
       }
       context = context.parent;
     } while (context);
-    originalMessage = this.buildMessage(originalMessage, contextMessages);
+    const originalMessage = this.buildMessage(inMessage, contextMessages);
     return validationError(originalMessage, contextMessages);
   }
 }
@@ -517,11 +517,7 @@ function optimizeOneOfError(errors) {
     return validationError(sections[0][0], sections[0].slice(1));
   }
 
-  sections = sections.map(messages => {
-    messages = messages.slice(0);
-    messages.reverse();
-    return messages;
-  });
+  sections = sections.map(messages => messages.slice(0).reverse());
 
   // Collect same lines into a separate section
   let same = [];
@@ -533,11 +529,7 @@ function optimizeOneOfError(errors) {
     i++;
   }
 
-  sections = sections.map(lines => {
-    lines = lines.slice(same.length);
-    lines.reverse();
-    return message(null, lines);
-  });
+  sections = sections.map(lines => message(null, lines.slice(same.length).reverse()));
 
   // Collect alternatives
   let alternatives = [];

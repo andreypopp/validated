@@ -48,11 +48,9 @@ export class AlternativeMessage extends Message {
 
 export function message(
   message: ?string,
-  children: GenericMessage | Array<GenericMessage> = [],
+  inChildren: GenericMessage | Array<GenericMessage> = [],
 ) {
-  if (!Array.isArray(children)) {
-    children = [children];
-  }
+  const children = Array.isArray(inChildren) ? inChildren : [inChildren];
   if (children.length === 1 && message == null) {
     return children[0];
   }
