@@ -358,7 +358,7 @@ export function maybe<V>(valueNode: Node<V>): MaybeNode<V> {
   return new MaybeNode(valueNode);
 }
 
-export class EnumerationNode<V> extends Node<mixed> {
+export class EnumerationNode<V> extends Node<V> {
   values: Array<V>;
 
   constructor(values: Array<V>) {
@@ -366,11 +366,11 @@ export class EnumerationNode<V> extends Node<mixed> {
     this.values = values;
   }
 
-  validate(context: Context): ValidateResult<mixed> {
+  validate(context: Context): ValidateResult<V> {
     return context.unwrap(value => {
       for (let i = 0; i < this.values.length; i++) {
         if (value === this.values[i]) {
-          return value;
+          return (value: any);
         }
       }
       let expectation = this.values.map(v => JSON.stringify(v)).join(', ');
@@ -380,8 +380,8 @@ export class EnumerationNode<V> extends Node<mixed> {
   }
 }
 
-export function enumeration(...values: Array<mixed>) {
-  let node: EnumerationNode<*> = new EnumerationNode(values);
+export function enumeration<A>(...values: Array<A>): EnumerationNode<A> {
+  let node: EnumerationNode<A> = new EnumerationNode(values);
   return node;
 }
 

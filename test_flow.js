@@ -18,3 +18,12 @@ function test_object() {
   // $ExpectError
   data.namex;
 }
+
+function test_enum() {
+  const schema: s.EnumerationNode<'a' | 'v'> = s.enumeration('a', 'v');
+  const data = o.validate(schema, 'a');
+  (data: 'a' | 'v');
+  (data: string);
+  // $ExpectError
+  (data: number);
+}
