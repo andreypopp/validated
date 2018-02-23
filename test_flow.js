@@ -2,8 +2,8 @@
  * @flow
  */
 
-import * as s from './src/schema';
 import * as o from './src/object';
+import * as s from './src/schema';
 
 function test_object() {
   const schema = s.object({
@@ -16,5 +16,5 @@ function test_object() {
   data.age;
 
   // $ExpectError
-  date.namex;
+  data.namex;
 }
