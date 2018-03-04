@@ -621,6 +621,9 @@ export function recur<V>(thunk: (node: Node<V>) => Node<V>): Node<V> {
   return new RecursiveNode(thunk);
 }
 
+type _ExtractType<V, _: Node<V>> = V;
+export type ExtractType<N: Node<*>> = _ExtractType<*, N>;
+
 function explode(variations, rest) {
   let result = [];
   for (let i = 0; i < variations.length; i++) {
