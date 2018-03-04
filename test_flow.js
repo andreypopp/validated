@@ -27,3 +27,17 @@ function test_enum() {
   // $ExpectError
   (data: number);
 }
+
+function test_extract_type() {
+  // define type
+  const PersonFields = s.partialObject({name: s.string, age: s.number, email: s.string});
+
+  // this is how to extract type from a validator
+  type Person = s.ExtractType<typeof PersonFields>;
+
+  // assert that types are unified
+  const user: Person = o.validate(PersonFields, '');
+  const name: string = user.name;
+  // $ExpectError
+  const invalid: number = user.name;
+}
