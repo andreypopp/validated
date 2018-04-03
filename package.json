@@ -8,11 +8,6 @@
   "scripts": {
     "test": "make build lint check test"
   },
-  "babel": {
-    "presets": [
-      "prometheusresearch"
-    ]
-  },
   "eslintConfig": {
     "extends": "prometheusresearch",
     "globals": {
