@@ -1,5 +1,9 @@
 // @flow
 
+// This is a partial libdef for custom-error-instance. It's filled out enough
+// such that it should work for the purposes of validated. However, the
+// documentation shows a potentially very complex API that might be hard to Flow
+// to express to a general purpose audience such as `flow-typed`.
 declare module 'custom-error-instance' {
   declare class CustomError extends Error {
     constructor(messageOrProps?: string | Object, properties?: Object): this;
@@ -12,11 +16,6 @@ declare module 'custom-error-instance' {
     message: string;
     originalMessage: string;
   }
-
-  // declare type CustomErrorFactory = (
-  //   message?: string,
-  //   config?: Object,
-  // ) => CustomError
 
   declare type CustomErrorApi = (
     name?: string,
