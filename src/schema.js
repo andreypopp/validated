@@ -28,7 +28,8 @@ export type ValidateResult<V> = {
   +value: V,
 };
 
-type Refine<A, B> = (value: A, error: (message: GenericMessage) => void) => B;
+// Maybe this should be Error instead of mixed?
+type Refine<A, B> = (value: A, error: (message: GenericMessage) => mixed) => B;
 
 export class Context {
   parent: ?Context;

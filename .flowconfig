@@ -17,6 +17,7 @@
 
 [libs]
 flow-typed
+decls
 
 [options]
 esproposal.class_static_fields=enable
