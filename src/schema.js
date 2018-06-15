@@ -213,7 +213,7 @@ export class MappingNode<V> extends Node<MappingOf<V>> {
   }
 }
 
-export function mapping<V>(valueNode?: Node<V> = any): MappingNode<V> {
+export function mapping<V>(valueNode?: Node<V> = new AnyNode()): MappingNode<V> {
   return new MappingNode(valueNode);
 }
 
@@ -317,7 +317,7 @@ export function partialObject<S: {[name: string]: Node<*>}>(
 export class SequenceNode<V> extends Node<Array<V>> {
   valueNode: Node<V>;
 
-  constructor(valueNode: Node<V> = any) {
+  constructor(valueNode: Node<V> = new AnyNode()) {
     super();
     this.valueNode = valueNode;
   }
@@ -327,12 +327,12 @@ export class SequenceNode<V> extends Node<Array<V>> {
   }
 }
 
-export function arrayOf<V>(valueNode: Node<V> = any): SequenceNode<V> {
+export function arrayOf<V>(valueNode: Node<V> = new AnyNode()): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
 
 // Kept for backwards compatibility. Use `arrayOf` instead.
-export function sequence<V>(valueNode: Node<V> = any): SequenceNode<V> {
+export function sequence<V>(valueNode: Node<V> = new AnyNode()): SequenceNode<V> {
   return new SequenceNode(valueNode);
 }
 
