@@ -1,5 +1,5 @@
 {
-  "name": "validated",
+  "name": "@alxandr/validated",
   "version": "2.0.0",
   "description": "JSON configuration utilities",
   "bin": {
@@ -7,7 +7,8 @@
   },
   "scripts": {
     "test": "make build lint check test",
-    "precommit": "npm run test"
+    "precommit": "npm run test",
+    "prepublishOnly": "npm run test"
   },
   "files": [
     "lib/",
@@ -52,5 +53,8 @@
     "indent-string": "^3.2.0",
     "invariant": "^2.2.4",
     "levenshtein-edit-distance": "^2.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
