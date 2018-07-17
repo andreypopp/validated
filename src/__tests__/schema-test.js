@@ -2,10 +2,11 @@
  * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
  */
 
+import {Node, arrayOf, number, object} from '../schema';
+
 import assert from 'assert';
 import {validate as validateJSON5} from '../json5';
 import {validate as validateObject} from '../object';
-import {Node, arrayOf, number, object} from '../schema';
 
 describe('validated/schema', function() {
   describe('refine', function() {

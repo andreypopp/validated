@@ -1,6 +1,7 @@
 /**
  * @flow
  */
+/* eslint-disable */
 
 import * as o from './src/object';
 import * as s from './src/schema';
@@ -40,4 +41,13 @@ function test_extract_type() {
   const name: string = user.name;
   // $ExpectError
   const invalid: number = user.name;
+}
+
+function enum_of_object() {
+  const schema = s.object({
+    enumeration: s.sequence(s.any),
+  });
+
+  const data = o.validate(schema, {enumeration: [1, 2, 3]});
+  data.enumeration.map(v => v);
 }

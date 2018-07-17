@@ -4,49 +4,64 @@
  */
 
 import {
-  recur,
-  oneOf,
-  enumeration,
-  object,
-  partialObject,
-  sequence,
-  mapping,
-  string,
-  number,
-  boolean,
-  maybe,
   any,
+  boolean,
   constant,
+  enumeration,
+  mapping,
+  maybe,
+  number,
+  object,
+  oneOf,
+  partialObject,
+  recur,
+  sequence,
+  string,
 } from './schema';
 
-export let schema = recur(schema =>
+import type {Node} from './schema';
+
+const asAnyNode = (node: Node<any>) => node;
+
+const stringSchema: Node<Node<any>> = constant('string').andThen(_ => string);
+const numberSchema: Node<Node<any>> = constant('number').andThen(_ => number);
+const booleanSchema: Node<Node<any>> = constant('boolean').andThen(_ => boolean);
+const anySchema: Node<Node<any>> = constant('any').andThen(_ => asAnyNode(any));
+const enumerationSchema: Node<Node<any>> = object({enumeration: sequence(any)}).andThen(
+  obj => enumeration(obj.enumeration),
+);
+const constantSchema: Node<Node<any>> = object({constant: any}).andThen(obj =>
+  constant(obj.constant),
+);
+const maybeSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
+  object({maybe: schema}).andThen(obj => maybe(obj.maybe));
+const mappingSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
+  object({mapping: schema}).andThen(obj => mapping(obj.mapping));
+const sequenceSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
+  object({sequence: schema}).andThen(obj => sequence(obj.sequence));
+const objectSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
+  object({object: mapping(schema), defaults: maybe(any)}).andThen(obj =>
+    object(obj.object, obj.defaults),
+  );
+const partialObjectSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
+  object({partialObject: mapping(schema), defaults: maybe(any)}).andThen(obj =>
+    partialObject(obj.partialObject, obj.defaults),
+  );
+
+const schemaSchema = recur(schema =>
   oneOf(
-    constant('string').andThen(_ => string),
-    constant('number').andThen(_ => number),
-    constant('boolean').andThen(_ => boolean),
-    constant('any').andThen(_ => any),
-    object({
-      enumeration: sequence(any),
-    }).andThen(obj => enumeration(obj.enumeration)),
-    object({
-      constant: any,
-    }).andThen(obj => constant(obj.constant)),
-    object({
-      maybe: schema,
-    }).andThen(obj => maybe(obj.maybe)),
-    object({
-      mapping: schema,
-    }).andThen(obj => mapping(obj.mapping)),
-    object({
-      sequence: schema,
-    }).andThen(obj => sequence(obj.sequence)),
-    object({
-      object: mapping(schema),
-      defaults: maybe(any),
-    }).andThen(obj => object(obj.object, obj.defaults)),
-    object({
-      partialObject: mapping(schema),
-      defaults: maybe(any),
-    }).andThen(obj => partialObject(obj.partialObject, obj.defaults)),
+    stringSchema,
+    numberSchema,
+    booleanSchema,
+    anySchema,
+    enumerationSchema,
+    constantSchema,
+    maybeSchema(schema),
+    mappingSchema(schema),
+    sequenceSchema(schema),
+    objectSchema(schema),
+    partialObjectSchema(schema),
   ),
 );
+
+export const schema = schemaSchema;

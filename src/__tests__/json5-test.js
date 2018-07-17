@@ -2,22 +2,23 @@
  * @copyright 2016-present, Andrey Popp <8mayday@gmail.com>
  */
 
-import assert from 'assert';
 import {
   ValidationError,
+  any,
+  boolean,
+  constant,
+  enumeration,
   mapping,
+  maybe,
+  number,
   object,
+  oneOf,
   partialObject,
   sequence,
-  maybe,
-  oneOf,
-  enumeration,
   string,
-  number,
-  boolean,
-  any,
-  constant,
 } from '../schema';
+
+import assert from 'assert';
 import {validate} from '../json5';
 
 function assertSuccess(schema, value, expectedValue) {
