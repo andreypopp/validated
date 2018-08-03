@@ -1,5 +1,5 @@
 {
-  "name": "@alxandr/validated",
+  "name": "validated",
   "version": "2.0.0",
   "description": "JSON configuration utilities",
   "bin": {
@@ -41,11 +41,11 @@
     "eslint-plugin-flowtype": "^2.50.0",
     "eslint-plugin-prettier": "^2.6.2",
     "eslint-plugin-react": "^7.10.0",
-    "flow-bin": "^0.76.0",
+    "flow-bin": "^0.77.0",
     "husky": "^0.14.3",
     "mocha": "^5.2.0",
     "mocha-doctest": "^0.3.4",
-    "prettier": "^1.13.7"
+    "prettier": "^1.14.0"
   },
   "dependencies": {
     "commander": "^2.16.0",
