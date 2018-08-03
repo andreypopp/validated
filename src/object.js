@@ -4,15 +4,13 @@
  */
 
 import type {Node, ValidateResult} from './schema';
-import type {GenericMessage} from './message';
+import {isObject, typeOf} from './utils';
 
 import {Context as ContextBase} from './schema';
-import {typeOf, isObject} from './utils';
+import type {GenericMessage} from './message';
 
 class Context extends ContextBase {
   value: any;
-  message: ?GenericMessage;
-  parent: ?ContextBase;
 
   constructor(value, message = null, parent = null) {
     super(message, parent);
