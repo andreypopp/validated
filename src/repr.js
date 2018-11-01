@@ -48,7 +48,7 @@ const partialObjectSchema: (Node<Node<any>>) => Node<Node<any>> = schema =>
     partialObject(obj.partialObject, obj.defaults),
   );
 
-const schemaSchema = recur(schema =>
+const schemaSchema: Node<Node<any>> = recur(schema =>
   oneOf(
     stringSchema,
     numberSchema,
