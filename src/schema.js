@@ -183,7 +183,9 @@ export class ConstantNode<V> extends Node<V> {
     return context.unwrap(value => {
       if (!this.eq(value, this.value)) {
         throw context.error(
-          `Expected ${JSON.stringify(this.value)} but got ${JSON.stringify(value)}`,
+          `Expected ${JSON.stringify(this.value) || 'undefined'} but got ${JSON.stringify(
+            value,
+          ) || 'undefined'}`,
         );
       }
       return (value: any);
@@ -373,8 +375,8 @@ export class EnumerationNode<V> extends Node<V> {
           return (value: any);
         }
       }
-      let expectation = this.values.map(v => JSON.stringify(v)).join(', ');
-      let repr = JSON.stringify(value);
+      let expectation = this.values.map(v => JSON.stringify(v) || 'undefined').join(', ');
+      let repr = JSON.stringify(value) || 'undefined';
       throw context.error(`Expected value to be one of ${expectation} but got ${repr}`);
     });
   }

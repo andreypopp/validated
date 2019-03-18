@@ -24,7 +24,7 @@ export class Message {
       return this.children.map(m => m.toString()).join(NEWLINE);
     } else {
       return [this.message]
-        .concat(this.children.map(m => indent(m.toString(), 1, INDENT)))
+        .concat(this.children.map(m => indent(m.toString(), 1, {indent: INDENT})))
         .join(NEWLINE);
     }
   }
